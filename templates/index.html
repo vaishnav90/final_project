@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APP | San Ramon/Danville Secondhand Marketplace</title>
+    <link href="static/assets/css/styles.css" rel="stylesheet" />
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="logo-icon">♻️</span> 
+                OurAPP
+            </div>
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#">Browse</a>
+                <a href="#">How It Works</a>
+                <a href="#">Messages</a>
+            </div>
+            <button class="btn" id="sell-btn">Sell Item</button>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
+        </nav>
+    </header>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu-header">
+            <div class="logo">
+                <span class="logo-icon">♻️</span> 
+                OurAPP
+            </div>
+            <button class="close-modal" id="close-mobile-menu">&times;</button>
+        </div>
+        <div class="mobile-menu-links">
+            <a href="#">Home</a>
+            <a href="#">Browse</a>
+            <a href="#">How It Works</a>
+            <a href="#">Messages</a>
+            <button class="btn btn-accent" id="mobile-sell-btn">Sell Item</button>
+        </div>
+    </div>
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+    
+    <section class="hero">
+        <div class="hero-content animate-slide">
+            <h1>Buy and Sell Pre-loved Fashion in San Ramon & Danville</h1>
+            <p>Join our local community to find quality secondhand clothes and give your wardrobe items a second life.</p>
+            <button class="btn btn-accent" id="get-started-btn">Get Started</button>
+        </div>
+    </section>
+    
+    <section class="featured-section">
+        <div class="main-container">
+            <div class="featured-container animate-fade">
+                <div class="neighborhood-selector">
+                    <select id="neighborhood-select">
+                        <option value="all">All Neighborhoods</option>
+                        <option value="sanramon-valley">San Ramon Valley</option>
+                        <option value="danville-downtown">Downtown Danville</option>
+                        <option value="windemere">Windemere</option>
+                        <option value="dougherty-valley">Dougherty Valley</option>
+                        <option value="blackhawk">Blackhawk</option>
+                        <option value="twin-creeks">Twin Creeks</option>
+                        <option value="crow-canyon">Crow Canyon</option>
+                    </select>
+                    <button class="btn">Update Location</button>
+                </div>
+                
+                <div class="categories">
+                    <div class="category active">All</div>
+                    <div class="category">Women's</div>
+                    <div class="category">Men's</div>
+                    <div class="category">Children's</div>
+                    <div class="category">Accessories</div>
+                    <div class="category">Shoes</div>
+                    <div class="category">Activewear</div>
+                    <div class="category">Formal</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="main-container">
+        <section>
+            <div class="section-header">
+                <h2 class="section-title">Recent Listings</h2>
+                <div class="view-options">
+                    <button class="btn btn-outline">View All</button>
+                </div>
+            </div>
+            
+            <div class="listings-grid">
+                <!-- Listing 1 -->
+                <div class="listing-card animate-fade">
+                    <div class="card-img">
+                        <div class="card-img-placeholder">Summer Dress Photo</div>
+                        <div class="card-badge">Like New</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Floral Summer Maxi Dress</h3>
+                        <p class="card-price">$28</p>
+                        <p class="card-location">
+                            <span class="material-icons">📍</span> 
+                            <span class="neighborhood-tag">Downtown Danville</span>
+                        </p>
+                        <div class="card-meta">
+                            <span>Size: M</span>
+                            <span>Posted: Today</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn message-btn">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Listing 2 -->
+                <div class="listing-card animate-fade" style="animation-delay: 0.1s;">
+                    <div class="card-img">
+                        <div class="card-img-placeholder">Leather Jacket Photo</div>
+                        <div class="card-badge">Gently Used</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Men's Leather Jacket</h3>
+                        <p class="card-price">$65</p>
+                        <p class="card-location">
+                            <span class="material-icons">📍</span>
+                            <span class="neighborhood-tag">Windemere</span>
+                        </p>
+                        <div class="card-meta">
+                            <span>Size: L</span>
+                            <span>Posted: 2 days ago</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn message-btn">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Listing 3 -->
+                <div class="listing-card animate-fade" style="animation-delay: 0.2s;">
+                    <div class="card-img">
+                        <div class="card-img-placeholder">Designer Bag Photo</div>
+                        <div class="card-badge">Excellent</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Coach Shoulder Bag</h3>
+                        <p class="card-price">$95</p>
+                        <p class="card-location">
+                            <span class="material-icons">📍</span>
+                            <span class="neighborhood-tag">Blackhawk</span>
+                        </p>
+                        <div class="card-meta">
+                            <span>Condition: Excellent</span>
+                            <span>Posted: 3 days ago</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn message-btn">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Listing 4 -->
+                <div class="listing-card animate-fade" style="animation-delay: 0.3s;">
+                    <div class="card-img">
+                        <div class="card-img-placeholder">Running Shoes Photo</div>
+                        <div class="card-badge">Like New</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Nike Running Shoes</h3>
+                        <p class="card-price">$45</p>
+                        <p class="card-location">
+                            <span class="material-icons">📍</span>
+                            <span class="neighborhood-tag">Dougherty Valley</span>
+                        </p>
+                        <div class="card-meta">
+                            <span>Size: 9</span>
+                            <span>Posted: 1 week ago</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn message-btn">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <div class="section-header">
+                <h2 class="section-title">High-end Finds</h2>
+                <div class="view-options">
+                    <button class="btn btn-outline">View All</button>
+                </div>
+            </div>
+            
+            <div class="listings-grid">
+                <!-- Listing 1 -->
+                <div class="listing-card animate-fade">
+                    <div class="card-img">
+                        <div class="card-img-placeholder">Designer Dress Photo</div>
+                        <div class="card-badge">Like New</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Burberry Trench Coat</h3>
+                        <p class="card-price">$220</p>
+                        <p class="card-location">
+                            <span class="material-icons">📍</span>
+                            <span class="neighborhood-tag">Blackhawk</span>
+                        </p>
+                        <div class="card-meta">
+                            <span>Size: S</span>
+                            <span>Posted: 5 days ago</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn message-btn">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Listing 2 -->
+                <div class="listing-card animate-fade" style="animation-delay: 0.1s;">
+                    <div class="card-img">
+                        <div class="card-img-placeholder">Designer Shoes Photo</div>
+                        <div class="card-badge">Never Worn</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Men's Ferragamo Loafers</h3>
+                        <p class="card-price">$175</p>
+                        <p class="card-location">
+                            <span class="material-icons">📍</span>
+                            <span class="neighborhood-tag">Downtown Danville</span>
+                        </p>
+                        <div class="card-meta">
+                            <span>Size: 10.5</span>
+                            <span>Posted: Yesterday</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn message-btn">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Listing 3 -->
+                <div class="listing-card animate-fade" style="animation-delay: 0.2s;">
+                    <div class="card-img">
+                        <div class="card-img-placeholder">Designer Watch Photo</div>
+                        <div class="card-badge">Mint</div
+
+</div>
+<div class="card-content">
+    <h3 class="card-title">Michael Kors Watch</h3>
+    <p class="card-price">$120</p>
+    <p class="card-location">
+        <span class="material-icons">📍</span>
+        <span class="neighborhood-tag">Twin Creeks</span>
+    </p>
+    <div class="card-meta">
+        <span>Condition: Excellent</span>
+        <span>Posted: 4 days ago</span>
+    </div>
+    <div class="card-actions">
+        <button class="btn message-btn">Contact Seller</button>
+    </div>
+</div>
+</div>
+
+<!-- Listing 4 -->
+<div class="listing-card animate-fade" style="animation-delay: 0.3s;">
+<div class="card-img">
+    <div class="card-img-placeholder">Suit Photo</div>
+    <div class="card-badge">Worn Once</div>
+</div>
+<div class="card-content">
+    <h3 class="card-title">Men's Tailored Hugo Boss Suit</h3>
+    <p class="card-price">$280</p>
+    <p class="card-location">
+        <span class="material-icons">📍</span>
+        <span class="neighborhood-tag">San Ramon Valley</span>
+    </p>
+    <div class="card-meta">
+        <span>Size: 42R</span>
+        <span>Posted: 1 week ago</span>
+    </div>
+    <div class="card-actions">
+        <button class="btn message-btn">Contact Seller</button>
+    </div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- New section for popular categories -->
+<section>
+<div class="section-header">
+<h2 class="section-title">Popular Categories</h2>
+</div>
+
+<div class="categories-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem;">
+<div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
+<div style="height: 140px; background-color: #f8e9e2; display: flex; align-items: center; justify-content: center;">
+    <span style="font-size: 2.5rem;">👚</span>
+</div>
+<div style="padding: 1.25rem;">
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Women's Clothing</h3>
+    <p style="color: var(--text-light); font-size: 0.9rem;">154 items</p>
+</div>
+</div>
+
+<div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
+<div style="height: 140px; background-color: #e2e9f8; display: flex; align-items: center; justify-content: center;">
+    <span style="font-size: 2.5rem;">👔</span>
+</div>
+<div style="padding: 1.25rem;">
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Men's Clothing</h3>
+    <p style="color: var(--text-light); font-size: 0.9rem;">97 items</p>
+</div>
+</div>
+
+<div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
+<div style="height: 140px; background-color: #e9f8e2; display: flex; align-items: center; justify-content: center;">
+    <span style="font-size: 2.5rem;">👟</span>
+</div>
+<div style="padding: 1.25rem;">
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Shoes</h3>
+    <p style="color: var(--text-light); font-size: 0.9rem;">83 items</p>
+</div>
+</div>
+
+<div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
+<div style="height: 140px; background-color: #f8f2e2; display: flex; align-items: center; justify-content: center;">
+    <span style="font-size: 2.5rem;">👜</span>
+</div>
+<div style="padding: 1.25rem;">
+    <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Accessories</h3>
+    <p style="color: var(--text-light); font-size: 0.9rem;">71 items</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- How it works section -->
+<section>
+<div class="section-header">
+<h2 class="section-title">How APP Works</h2>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin: 2rem 0;">
+<div style="text-align: center;">
+<div style="background-color: var(--primary-light); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">1</div>
+<h3 style="margin-bottom: 1rem; color: var(--primary-dark);">List Your Items</h3>
+<p style="color: var(--text-light);">Take photos and create a listing for your pre-loved clothing items in minutes.</p>
+</div>
+
+<div style="text-align: center;">
+<div style="background-color: var(--primary-light); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">2</div>
+<h3 style="margin-bottom: 1rem; color: var(--primary-dark);">Connect Locally</h3>
+<p style="color: var(--text-light);">Chat with buyers or sellers in your neighborhood through our secure messaging system.</p>
+</div>
+
+<div style="text-align: center;">
+<div style="background-color: var(--primary-light); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">3</div>
+<h3 style="margin-bottom: 1rem; color: var(--primary-dark);">Meet & Exchange</h3>
+<p style="color: var(--text-light);">Arrange a safe local meetup to complete your transaction and give clothes a second life.</p>
+</div>
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+<button class="btn btn-accent">Learn More</button>
+</div>
+</section>
+</div>
+
+<!-- Newsletter signup section -->
+<section style="background-color: var(--primary-light); padding: 4rem 2rem; text-align: center; margin-top: 3rem;">
+<div style="max-width: 600px; margin: 0 auto;">
+<h2 style="color: var(--primary-dark); margin-bottom: 1rem;">Join Our Community</h2>
+<p style="color: var(--text-light); margin-bottom: 2rem;">Sign up for our newsletter to stay updated on new listings, sustainable fashion tips, and community events.</p>
+
+<form style="display: flex; gap: 0.5rem; max-width: 500px; margin: 0 auto;">
+<input type="email" placeholder="Your email address" style="flex: 1; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 1rem;">
+<button type="submit" class="btn">Subscribe</button>
+</form>
+</div>
+</section>
+
+<footer>
+<div class="footer-content">
+<div class="footer-section">
+<h3>APP</h3>
+<p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">Your local marketplace for pre-loved fashion in San Ramon and Danville.</p>
+<div style="display: flex; gap: 1rem; margin-top: 1rem;">
+<a href="#" style="color: white; font-size: 1.2rem;">📱</a>
+<a href="#" style="color: white; font-size: 1.2rem;">📘</a>
+<a href="#" style="color: white; font-size: 1.2rem;">📸</a>
+<a href="#" style="color: white; font-size: 1.2rem;">🐦</a>
+</div>
+</div>
+
+<div class="footer-section">
+<h3>Quick Links</h3>
+<ul class="footer-links">
+<li><a href="#">Home</a></li>
+<li><a href="#">Browse Items</a></li>
+<li><a href="#">Sell Items</a></li>
+<li><a href="#">How It Works</a></li>
+<li><a href="#">FAQ</a></li>
+</ul>
+</div>
+
+<div class="footer-section">
+<h3>Categories</h3>
+<ul class="footer-links">
+<li><a href="#">Women's Clothing</a></li>
+<li><a href="#">Men's Clothing</a></li>
+<li><a href="#">Shoes & Accessories</a></li>
+<li><a href="#">Children's</a></li>
+<li><a href="#">Activewear</a></li>
+</ul>
+</div>
+
+<div class="footer-section">
+<h3>Contact Us</h3>
+<ul class="footer-links">
+<li><a href="mailto:info@APP.com">info@APP.com</a></li>
+<li><a href="tel:9255551234">(925) 555-1234</a></li>
+<li style="color: rgba(255, 255, 255, 0.7);">San Ramon & Danville, CA</li>
+</ul>
+</div>
+</div>
+
+<div class="footer-bottom">
+<p>&copy; 2025 APP. All rights reserved.</p>
+<p style="margin-top: 0.5rem;">
+<a href="#" style="color: rgba(255, 255, 255, 0.6); margin-right: 1rem;">Privacy Policy</a>
+<a href="#" style="color: rgba(255, 255, 255, 0.6); margin-right: 1rem;">Terms of Service</a>
+<a href="#" style="color: rgba(255, 255, 255, 0.6);">Community Guidelines</a>
+</p>
+</div>
+</footer>
+
+<!-- Sell Item Modal -->
+<div class="modal" id="sell-modal">
+<div class="modal-content">
+<div class="modal-header">
+<h2>List Your Item</h2>
+<button class="close-modal">&times;</button>
+</div>
+
+<div class="success-message" id="success-message">
+Your item has been successfully listed and is now visible to buyers in the San Ramon/Danville area.
+</div>
+
+<form id="sell-form">
+<div class="form-group">
+<label for="item-title">Item Title</label>
+<input type="text" id="item-title" placeholder="e.g. Women's Levi's 501 Jeans" required>
+</div>
+
+<div class="form-group">
+<label for="item-category">Category</label>
+<select id="item-category" required>
+    <option value="">Select a category</option>
+    <option value="women">Women's Clothing</option>
+    <option value="men">Men's Clothing</option>
+    <option value="kids">Children's</option>
+    <option value="accessories">Accessories</option>
+    <option value="shoes">Shoes</option>
+    <option value="activewear">Activewear</option>
+    <option value="formal">Formal Wear</option>
+</select>
+</div>
+
+<div class="form-group">
+<label for="item-price">Price ($)</label>
+<input type="number" id="item-price" min="0" step="0.01" placeholder="e.g. 25.00" required>
+</div>
+
+<div class="form-group">
+<label for="item-size">Size</label>
+<input type="text" id="item-size" placeholder="e.g. Medium, 8, 32x30" required>
+</div>
+
+<div class="form-group">
+<label for="item-condition">Condition</label>
+<select id="item-condition" required>
+    <option value="">Select condition</option>
+    <option value="new">New with tags</option>
+    <option value="like-new">Like new</option>
+    <option value="gently-used">Gently used</option>
+    <option value="good">Good</option>
+    <option value="well-worn">Well worn</option>
+</select>
+</div>
+
+<div class="form-group">
+<label for="item-description">Description</label>
+<textarea id="item-description" rows="4" placeholder="Describe your item, including brand, color, material, any flaws, etc." required></textarea>
+</div>
+
+<div class="form-group">
+<label for="item-neighborhood">Neighborhood</label>
+<select id="item-neighborhood" required>
+    <option value="">Select your neighborhood</option>
+    <option value="sanramon-valley">San Ramon Valley</option>
+    <option value="danville-downtown">Downtown Danville</option>
+    <option value="windemere">Windemere</option>
+    <option value="dougherty-valley">Dougherty Valley</option>
+    <option value="blackhawk">Blackhawk</option>
+    <option value="twin-creeks">Twin Creeks</option>
+    <option value="crow-canyon">Crow Canyon</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Upload Images</label>
+<div class="file-upload" id="file-upload">
+    <span class="material-icons" style="font-size: 2rem; color: #aaa;">📷</span>
+    <p class="file-upload-text">Click to upload photos or drag and drop</p>
+    <input type="file" id="item-images" accept="image/*" multiple style="display: none;">
+</div>
+</div>
+
+<button type="submit" class="btn btn-accent">List Item</button>
+</form>
+</div>
+</div>
+
+<!-- Message Modal -->
+<div class="modal" id="message-modal">
+<div class="modal-content">
+<div class="modal-header">
+<h2>Contact Seller</h2>
+<button class="close-modal">&times;</button>
+</div>
+<div class="item-details">
+<h3 id="message-item-title">Floral Summer Maxi Dress</h3>
+<p style="color: var(--accent); font-weight: 600;">$28</p>
+<p style="color: var(--text-light); font-size: 0.9rem;">Downtown Danville · Posted today</p>
+</div>
+
+<form class="message-form">
+<div class="form-group">
+<label for="message-text">Message</label>
+<textarea id="message-text" rows="4" placeholder="Hi! I'm interested in your item. Is it still available?" required></textarea>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<div class="form-group" style="margin-bottom: 0; flex: 1;">
+    <input type="checkbox" id="notify-me" style="width: auto; margin-right: 0.5rem;">
+    <label for="notify-me" style="display: inline;">Notify me for replies</label>
+</div>
+<button type="submit" class="btn btn-accent">Send Message</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- JavaScript for interactivity -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+// Open sell modal
+document.getElementById('sell-btn').addEventListener('click', function() {
+document.getElementById('sell-modal').style.display = 'flex';
+document.body.style.overflow = 'hidden';
+});
+
+// Mobile menu toggle
+document.getElementById('mobile-menu-toggle').addEventListener('click', function() {
+document.getElementById('mobile-menu').classList.add('active');
+document.getElementById('mobile-menu-overlay').style.display = 'block';
+document.body.style.overflow = 'hidden';
+});
+
+// Close mobile menu
+document.getElementById('close-mobile-menu').addEventListener('click', function() {
+document.getElementById('mobile-menu').classList.remove('active');
+document.getElementById('mobile-menu-overlay').style.display = 'none';
+document.body.style.overflow = 'auto';
+});
+
+document.getElementById('mobile-menu-overlay').addEventListener('click', function() {
+document.getElementById('mobile-menu').classList.remove('active');
+document.getElementById('mobile-menu-overlay').style.display = 'none';
+document.body.style.overflow = 'auto';
+});
+
+// Mobile sell button
+document.getElementById('mobile-sell-btn').addEventListener('click', function() {
+document.getElementById('mobile-menu').classList.remove('active');
+document.getElementById('mobile-menu-overlay').style.display = 'none';
+document.getElementById('sell-modal').style.display = 'flex';
+document.body.style.overflow = 'hidden';
+});
+
+// Close modals
+const closeButtons = document.querySelectorAll('.close-modal');
+closeButtons.forEach(function(button) {
+button.addEventListener('click', function() {
+document.querySelectorAll('.modal').forEach(function(modal) {
+    modal.style.display = 'none';
+});
+document.body.style.overflow = 'auto';
+});
+});
+
+// Open message modal
+const messageButtons = document.querySelectorAll('.message-btn');
+messageButtons.forEach(function(button) {
+button.addEventListener('click', function() {
+const itemTitle = this.closest('.listing-card').querySelector('.card-title').textContent;
+document.getElementById('message-item-title').textContent = itemTitle;
+document.getElementById('message-modal').style.display = 'flex';
+document.body.style.overflow = 'hidden';
+});
+});
+
+// Category selection
+const categories = document.querySelectorAll('.category');
+categories.forEach(function(category) {
+category.addEventListener('click', function() {
+categories.forEach(function(cat) {
+    cat.classList.remove('active');
+});
+this.classList.add('active');
+});
+});
+
+// File upload interaction
+const fileUpload = document.getElementById('file-upload');
+const fileInput = document.getElementById('item-images');
+
+fileUpload.addEventListener('click', function() {
+fileInput.click();
+});
+
+fileInput.addEventListener('change', function() {
+if (this.files.length > 0) {
+fileUpload.style.borderColor = 'var(--success)';
+fileUpload.querySelector('.file-upload-text').textContent = `${this.files.length} file(s) selected`;
+}
+});
+
+// Form submission (for demo purposes)
+document.getElementById('sell-form').addEventListener('submit', function(e) {
+e.preventDefault();
+document.getElementById('success-message').style.display = 'block';
+
+// Reset form after short delay
+setTimeout(function() {
+document.getElementById('success-message').style.display = 'none';
+document.getElementById('sell-modal').style.display = 'none';
+document.body.style.overflow = 'auto';
+document.getElementById('sell-form').reset();
+fileUpload.style.borderColor = 'var(--border)';
+fileUpload.querySelector('.file-upload-text').textContent = 'Click to upload photos or drag and drop';
+}, 3000);
+});
+
+// Add animation for category cards
+const categoryCards = document.querySelectorAll('.category-card');
+categoryCards.forEach(function(card) {
+card.addEventListener('mouseenter', function() {
+this.style.transform = 'translateY(-5px)';
+});
+
+card.addEventListener('mouseleave', function() {
+this.style.transform = 'translateY(0)';
+});
+});
+
+// Show skeleton loading (simulation)
+function showLoading() {
+const cards = document.querySelectorAll('.listing-card');
+cards.forEach(function(card) {
+const img = card.querySelector('.card-img-placeholder');
+img.classList.add('skeleton');
+setTimeout(function() {
+    img.classList.remove('skeleton');
+}, 2000);
+});
+}
+
+// Simulate loading when changing categories
+categories.forEach(function(category) {
+category.addEventListener('click', showLoading);
+});
+
+// Get started button
+document.getElementById('get-started-btn').addEventListener('click', function() {
+window.scrollTo({
+top: document.querySelector('.featured-section').offsetTop,
+behavior: 'smooth'
+});
+});
+});
+</script>
+</body>
+</html>
