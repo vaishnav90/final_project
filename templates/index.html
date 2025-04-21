@@ -19,11 +19,43 @@
                 <a href="#">How It Works</a>
                 <a href="#">Messages</a>
             </div>
-            <button class="btn" id="sell-btn">Sell Item</button>
+            <div class="nav-buttons">
+                <button class="btn" id="sell-btn">Sell Item</button>
+                <button class="btn" id="login-btn">Login</button>
+            </div>
             <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
         </nav>
     </header>
-    
+
+    <!-- Create Account Modal -->
+    <div class="modal" id="signup-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create an Account</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" placeholder="Re-enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-accent">Create Account</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobile-menu">
         <div class="mobile-menu-header">
@@ -595,13 +627,37 @@ document.body.style.overflow = 'hidden';
 
 // Close modals
 const closeButtons = document.querySelectorAll('.close-modal');
-closeButtons.forEach(function(button) {
-button.addEventListener('click', function() {
-document.querySelectorAll('.modal').forEach(function(modal) {
-    modal.style.display = 'none';
+closeButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+        const modal = this.closest('.modal'); // Find the closest modal to the button
+        if (modal) {
+            modal.style.display = 'none'; // Hide the modal
+            document.body.style.overflow = 'auto'; // Restore page scrolling
+        }
+    });
 });
-document.body.style.overflow = 'auto';
+
+// Close modal when clicking outside the modal content
+const modals = document.querySelectorAll('.modal');
+modals.forEach(function (modal) {
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            modal.style.display = 'none'; // Hide the modal
+            document.body.style.overflow = 'auto'; // Restore page scrolling
+        }
+    });
 });
+
+// Open the signup modal
+document.getElementById('login-btn').addEventListener('click', function () {
+    document.getElementById('signup-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevent scrolling when the modal is open
+});
+
+// Open the signup modal when "Get Started" is clicked
+document.getElementById('get-started-btn').addEventListener('click', function () {
+    document.getElementById('signup-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevent scrolling when the modal is open
 });
 
 // Open message modal
