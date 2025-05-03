@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liked Items | APP</title>
+    <link href="static/assets/css/styles.css" rel="stylesheet" />
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="logo-icon">♻️</span> 
+                OurAPP
+            </div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/liked">Liked Items</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-container">
+        <section>
+            <div class="section-header">
+                <h2 class="section-title">Liked Items</h2>
+            </div>
+            <div class="listings-grid" id="liked-items-grid">
+                <!-- Liked items will be dynamically added here -->
+            </div>
+        </section>
+    </main>
+
+ 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+    const likedItemsGrid = document.getElementById('liked-items-grid');
+    let likedItems = JSON.parse(localStorage.getItem('likedItems')) || [];
+
+    // Populate the liked items grid
+    function renderLikedItems() {
+        likedItemsGrid.innerHTML = ''; // Clear the grid
+        if (likedItems.length === 0) {
+            likedItemsGrid.innerHTML = '<p>No liked items yet.</p>';
+            return;
+        }
+
+        likedItems.forEach(item => {
+            const listingCard = document.createElement('div');
+            listingCard.classList.add('listing-card', 'animate-fade');
+            listingCard.innerHTML = `
+                <div class="card-img">
+                    <div class="card-badge">${item.condition}</div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">${item.title}</h3>
+                    <p class="card-price">${item.price}</p>
+                    <p class="card-location">
+                        <span class="material-icons">📍</span> 
+                        <span class="neighborhood-tag">${item.location}</span>
+                    </p>
+                    <button class="btn unlike-btn">Unlike</button>
+                </div>
+            `;
+            likedItemsGrid.appendChild(listingCard);
+
+            // Add event listener to the "Unlike" button
+            listingCard.querySelector('.unlike-btn').addEventListener('click', function () {
+                likedItems = likedItems.filter(likedItem => likedItem.title !== item.title);
+                localStorage.setItem('likedItems', JSON.stringify(likedItems));
+                renderLikedItems(); // Re-render the liked items
+            });
+        });
+    }
+
+    renderLikedItems();
+});
+    </script>
+</body>
+</html>

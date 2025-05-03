@@ -235,7 +235,7 @@ nav {
 
 .card-badge {
     position: absolute;
-    top: 10px;
+    top: 20px;
     right: 10px;
     background-color: var(--accent);
     color: white;
@@ -686,6 +686,46 @@ footer {
     animation: slideUp 0.5s ease forwards;
 }
 
+/* Like button styles */
+.listing-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.like-btn {
+    position: absolute;
+    top: 7px;
+    left: 10px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #888; /* Default grey color */
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+    border-radius: 50%; /* Optional: make it circular */
+    padding: 0.5rem;
+}
+
+.like-btn:hover {
+    transform: scale(1.2); /* Slight zoom effect on hover */
+}
+
+.like-btn.liked {
+    background-color: rgba(255, 0, 0, 0.1); /* Light red background */
+    color: red; /* Change icon color to red */
+}
+
+/* Heart icon href*/
+.heart-link {
+    font-size: 20rem;
+    color: grey;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.heart-link:hover {
+    color: red;
+}
 /* Skeleton loading */
 .skeleton {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);

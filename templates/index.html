@@ -20,6 +20,9 @@
                 <a href="#">Messages</a>
             </div>
             <div class="nav-buttons">
+                <a href="/liked">
+                    <button class="btn">Saved</button>
+                </a>
                 <button class="btn" id="sell-btn">Sell Item</button>
                 <button class="btn" id="login-btn">Login</button>
             </div>
@@ -127,6 +130,7 @@
                 <!-- Listing 1 -->
                 <div class="listing-card animate-fade">
                     <div class="card-img">
+                        <button class="like-btn" data-liked="false" aria-label="Like Listing">❤️</button>
                         <div class="card-img-placeholder">Summer Dress Photo</div>
                         <div class="card-badge">Like New</div>
                     </div>
@@ -150,6 +154,7 @@
                 <!-- Listing 2 -->
                 <div class="listing-card animate-fade" style="animation-delay: 0.1s;">
                     <div class="card-img">
+                        <button class="like-btn" data-liked="false" aria-label="Like Listing">❤️</button>
                         <div class="card-img-placeholder">Leather Jacket Photo</div>
                         <div class="card-badge">Gently Used</div>
                     </div>
@@ -173,6 +178,7 @@
                 <!-- Listing 3 -->
                 <div class="listing-card animate-fade" style="animation-delay: 0.2s;">
                     <div class="card-img">
+                        <button class="like-btn" data-liked="false" aria-label="Like Listing">❤️</button>
                         <div class="card-img-placeholder">Designer Bag Photo</div>
                         <div class="card-badge">Excellent</div>
                     </div>
@@ -196,6 +202,7 @@
                 <!-- Listing 4 -->
                 <div class="listing-card animate-fade" style="animation-delay: 0.3s;">
                     <div class="card-img">
+                        <button class="like-btn" data-liked="false" aria-label="Like Listing">❤️</button>
                         <div class="card-img-placeholder">Running Shoes Photo</div>
                         <div class="card-badge">Like New</div>
                     </div>
@@ -230,6 +237,7 @@
                 <!-- Listing 1 -->
                 <div class="listing-card animate-fade">
                     <div class="card-img">
+                        <button class="like-btn" data-liked="false" aria-label="Like Listing">❤️</button>
                         <div class="card-img-placeholder">Designer Dress Photo</div>
                         <div class="card-badge">Like New</div>
                     </div>
@@ -253,6 +261,7 @@
                 <!-- Listing 2 -->
                 <div class="listing-card animate-fade" style="animation-delay: 0.1s;">
                     <div class="card-img">
+                        <button class="like-btn" data-liked="false" aria-label="Like Listing">❤️</button>
                         <div class="card-img-placeholder">Designer Shoes Photo</div>
                         <div class="card-badge">Never Worn</div>
                     </div>
@@ -276,51 +285,53 @@
                 <!-- Listing 3 -->
                 <div class="listing-card animate-fade" style="animation-delay: 0.2s;">
                     <div class="card-img">
+                        <button class="like-btn" data-liked="false" aria-label="Like Listing">❤️</button>
                         <div class="card-img-placeholder">Designer Watch Photo</div>
-                        <div class="card-badge">Mint</div
+                        <div class="card-badge">Mint</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Men's Ferragamo Loafers</h3>
+                        <p class="card-price">$175</p>
+                        <p class="card-location">
+                            <span class="material-icons">📍</span>
+                            <span class="neighborhood-tag">Downtown Danville</span>
+                        </p>
+                        <div class="card-meta">
+                            <span>Size: 10.5</span>
+                            <span>Posted: Yesterday</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn message-btn">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+                
 
-</div>
-<div class="card-content">
-    <h3 class="card-title">Michael Kors Watch</h3>
-    <p class="card-price">$120</p>
-    <p class="card-location">
-        <span class="material-icons">📍</span>
-        <span class="neighborhood-tag">Twin Creeks</span>
-    </p>
-    <div class="card-meta">
-        <span>Condition: Excellent</span>
-        <span>Posted: 4 days ago</span>
-    </div>
-    <div class="card-actions">
-        <button class="btn message-btn">Contact Seller</button>
-    </div>
-</div>
-</div>
-
-<!-- Listing 4 -->
-<div class="listing-card animate-fade" style="animation-delay: 0.3s;">
-<div class="card-img">
-    <div class="card-img-placeholder">Suit Photo</div>
-    <div class="card-badge">Worn Once</div>
-</div>
-<div class="card-content">
-    <h3 class="card-title">Men's Tailored Hugo Boss Suit</h3>
-    <p class="card-price">$280</p>
-    <p class="card-location">
-        <span class="material-icons">📍</span>
-        <span class="neighborhood-tag">San Ramon Valley</span>
-    </p>
-    <div class="card-meta">
-        <span>Size: 42R</span>
-        <span>Posted: 1 week ago</span>
-    </div>
-    <div class="card-actions">
-        <button class="btn message-btn">Contact Seller</button>
-    </div>
-</div>
-</div>
-</div>
-</section>
+                <!-- Listing 4 -->
+                <div class="listing-card animate-fade" style="animation-delay: 0.3s;">
+                <div class="card-img">
+                    <button class="like-btn" data-liked="false" aria-label="Like Listing">❤️</button>
+                    <div class="card-img-placeholder">Suit Photo</div>
+                    <div class="card-badge">Worn Once</div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Men's Tailored Hugo Boss Suit</h3>
+                    <p class="card-price">$280</p>
+                    <p class="card-location">
+                        <span class="material-icons">📍</span>
+                        <span class="neighborhood-tag">San Ramon Valley</span>
+                    </p>
+                    <div class="card-meta">
+                        <span>Size: 42R</span>
+                        <span>Posted: 1 week ago</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn message-btn">Contact Seller</button>
+                    </div>
+                </div>
+                </div>
+                </div>
+                </section>
 
 <!-- New section for popular categories -->
 <section>
@@ -723,6 +734,37 @@ this.style.transform = 'translateY(-5px)';
 card.addEventListener('mouseleave', function() {
 this.style.transform = 'translateY(0)';
 });
+});
+
+// Add "like" functionality to all like buttons
+const likeButtons = document.querySelectorAll('.like-btn');
+likeButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+        const isLiked = button.getAttribute('data-liked') === 'true';
+        const listingCard = button.closest('.listing-card');
+        const itemData = {
+            title: listingCard.querySelector('.card-title').textContent,
+            price: listingCard.querySelector('.card-price').textContent,
+            location: listingCard.querySelector('.neighborhood-tag').textContent,
+            condition: listingCard.querySelector('.card-badge').textContent,
+        };
+
+        let likedItems = JSON.parse(localStorage.getItem('likedItems')) || [];
+
+        if (isLiked) {
+            // Unlike the item
+            button.setAttribute('data-liked', 'false');
+            button.classList.remove('liked');
+            likedItems = likedItems.filter(item => item.title !== itemData.title);
+        } else {
+            // Like the item
+            button.setAttribute('data-liked', 'true');
+            button.classList.add('liked');
+            likedItems.push(itemData);
+        }
+
+        localStorage.setItem('likedItems', JSON.stringify(likedItems));
+    });
 });
 
 // Show skeleton loading (simulation)
