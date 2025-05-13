@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | APP</title>
+    <link href="/static/assets/css/styles.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-form">
+            <h1>Welcome Back</h1>
+            <p>Please enter your details to log in.</p>
+            <form method="POST" action="/login">
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Log In</button>
+            </form>
+            <p>Don't have an account? <a href="/signup">Sign up</a></p>
+        </div>
+        <div class="auth-image">
+            <!-- Blank or solid color section -->
+        </div>
+    </div>
+</body>
+</html>

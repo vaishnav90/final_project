@@ -349,6 +349,9 @@ footer {
     color: rgba(255, 255, 255, 0.6);
 }
 
+.get-started-howitworks-section {
+    
+}
 /* Modal styles */
 .modal {
     display: none;
@@ -736,4 +739,103 @@ footer {
 @keyframes skeleton-loading {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+}
+
+/* Auth Container */
+.auth-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    background-color: var(--background); /* Matches the website's background */
+}
+
+.auth-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0 5%;
+    background-color: var(--card-bg); /* Matches the card background */
+    box-shadow: var(--shadow); /* Matches the website's shadow style */
+}
+
+.auth-form h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--primary-dark); /* Matches the primary dark color */
+}
+
+.auth-form p {
+    margin-bottom: 1.5rem;
+    color: var(--text-light); /* Matches the light text color */
+}
+
+.auth-form form {
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid var(--border); /* Matches the border color */
+    border-radius: var(--radius); /* Matches the border radius */
+    font-size: 16px;
+    color: var(--text); /* Matches the text color */
+    background-color: var(--card-bg); /* Matches the card background */
+}
+
+.auth-form input[type="text"]:focus,
+.auth-form input[type="email"]:focus,
+.auth-form input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary); /* Matches the primary color */
+}
+
+.auth-form button {
+    background-color: var(--primary); /* Matches the primary color */
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: var(--radius); /* Matches the border radius */
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: var(--shadow); /* Matches the shadow style */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.auth-form button:hover {
+    background-color: var(--primary-dark); /* Darker shade of the primary color */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+.auth-form a {
+    color: var(--primary); /* Matches the primary color */
+    text-decoration: none;
+}
+
+.auth-form a:hover {
+    text-decoration: underline;
+}
+
+.auth-image {
+    flex: 1;
+    background-color: var(--primary-light); /* Matches the primary light color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-image::before {
+    content: '';
+    width: 80%;
+    height: 80%;
+    background-color: var(--primary); /* Matches the primary color */
+    border-radius: var(--radius); /* Matches the border radius */
 }
