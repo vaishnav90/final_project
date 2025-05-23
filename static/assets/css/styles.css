@@ -742,7 +742,7 @@ footer {
 html, body {
     height: 100%; /* Ensure the body takes up the full height of the viewport */
     margin: 0; /* Remove default margins */
-    overflow: hidden; /* Prevent scrolling */
+    overflow: auto; /* Prevent scrolling */
 }
 
 .auth-container {

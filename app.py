@@ -85,7 +85,7 @@ def initialize_neighborhoods():
 initialize_categories()
 initialize_neighborhoods()
 
-@app.route('/index')
+@app.route('/')
 def home():
     # Get recent listings
     recent_listings = list(listings_collection.find({'status': 'available'})
