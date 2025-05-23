@@ -6,9 +6,37 @@
     <title>Login | APP</title>
     <link href="/static/assets/css/styles.css" rel="stylesheet" />
 </head>
+
 <body>
-    <div class="auth-container">
-        <div class="auth-form">
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="logo-icon">♻️</span> 
+                OurAPP
+            </div>
+            <div class="nav-links">
+                <a href="/index">Home</a>
+                <a href="#">Browse</a>
+                <a href="/howitworks">How It Works</a>
+                <a href="#">Messages</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="/liked">
+                    <button class="btn">Saved</button>
+                </a>
+                <button class="btn" id="sell-btn">Sell Item</button>
+                <a href="/signup">
+                    <button class="btn">Sign Up</button>
+                </a>
+                <a href="/login">
+                    <button class="btn">Login</button>
+                </a>
+            </div>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
+        </nav>
+    </header>
+    <div class="auth-container-login">
+        <div class="auth-form-login">
             <h1>Welcome Back</h1>
             <p>Please enter your details to log in.</p>
             <form method="POST" action="/login">
@@ -17,9 +45,6 @@
                 <button type="submit">Log In</button>
             </form>
             <p>Don't have an account? <a href="/signup">Sign up</a></p>
-        </div>
-        <div class="auth-image">
-            <!-- Blank or solid color section -->
         </div>
     </div>
 </body>

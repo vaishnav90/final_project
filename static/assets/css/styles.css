@@ -348,10 +348,7 @@ footer {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.6);
 }
-
-.get-started-howitworks-section {
     
-}
 /* Modal styles */
 .modal {
     display: none;
@@ -742,24 +739,42 @@ footer {
 }
 
 /* Auth Container */
+html, body {
+    height: 100%; /* Ensure the body takes up the full height of the viewport */
+    margin: 0; /* Remove default margins */
+    overflow: hidden; /* Prevent scrolling */
+}
+
 .auth-container {
     display: flex;
-    height: 100vh;
-    width: 100%;
-    background-color: var(--background); /* Matches the website's background */
+    height: 100vh; /* Full viewport height */
+    width: 100%; /* Full width of the screen */
+    overflow: hidden; /* Prevents scrolling within the container */
 }
 
 .auth-form {
-    flex: 1;
+    flex: 1; /* Take up the left side */
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 0 5%;
+    justify-content: center; /* Center vertically */
+    align-items: center; /* Center horizontally */
+    padding: 2rem;
     background-color: var(--card-bg); /* Matches the card background */
-    box-shadow: var(--shadow); /* Matches the website's shadow style */
+    box-shadow: var(--shadow); /* Optional: Adds shadow */
+    margin: 0; /* Ensure no extra margins */
 }
 
+.auth-image {
+    flex: 1; /* Take up the right side */
+    height: 100%; /* Ensures it fills the container height */
+    overflow: hidden; /* Prevents the image from overflowing */
+}
+
+.auth-image img {
+    width: 100%; /* Make the image fill the container's width */
+    height: 100%; /* Make the image fill the container's height */
+    object-fit: cover; /* Ensures the image scales properly without distortion */
+}
 .auth-form h1 {
     font-size: 2rem;
     margin-bottom: 1rem;
@@ -823,19 +838,89 @@ footer {
 .auth-form a:hover {
     text-decoration: underline;
 }
-
-.auth-image {
-    flex: 1;
-    background-color: var(--primary-light); /* Matches the primary light color */
+/* Auth Container Login */
+.auth-container-login {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    height: 100vh;
+    width: 100%;
+    background-color: var(--background); /* Matches the website's background */
+    justify-content: center; /* Centers the form horizontally */
+    align-items: center; /* Centers the form vertically */
+    padding: 2rem; /* Adds padding for smaller screens */
 }
 
-.auth-image::before {
-    content: '';
-    width: 80%;
-    height: 80%;
+.auth-form-login {
+    width: 100%;
+    max-width: 400px; /* Restricts the form width */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; /* Centers the form content */
+    padding: 2rem;
+    background-color: var(--card-bg); /* Matches the card background */
+    box-shadow: var(--shadow); /* Matches the website's shadow style */
+    border-radius: var(--radius); /* Adds rounded corners */
+}
+
+.auth-form-login h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--primary-dark); /* Matches the primary dark color */
+}
+
+.auth-form-login input[type="text"],
+.auth-form-login input[type="email"],
+.auth-form-login input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid var(--border); /* Matches the border color */
+    border-radius: var(--radius); /* Adds rounded corners */
+    font-size: 16px;
+    color: var(--text); /* Matches the text color */
+    background-color: var(--card-bg); /* Matches the card background */
+}
+
+.auth-form-login input[type="text"]:focus,
+.auth-form-login input[type="email"]:focus,
+.auth-form-login input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary); /* Matches the primary color */
+}
+
+.auth-form-login button {
     background-color: var(--primary); /* Matches the primary color */
-    border-radius: var(--radius); /* Matches the border radius */
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: var(--radius); /* Adds rounded corners */
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: var(--shadow); /* Matches the shadow style */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.auth-form-login button:hover {
+    background-color: var(--primary-dark); /* Darker shade of the primary color */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+
+.auth-form-login a {
+    color: var(--primary); /* Matches the primary color */
+    text-decoration: none;
+    margin-top: 1rem;
+}
+
+.auth-form-login a:hover {
+    text-decoration: underline;
+}
+
+.auth-image img {
+    width: 100%; /* Makes the image responsive */
+    max-width: 400px; /* Restricts the maximum width */
+    height: auto; /* Maintains the aspect ratio */
+    border-radius: 10px; /* Optional: Adds rounded corners */
+    box-shadow: var(--shadow); /* Optional: Adds a shadow for better appearance */
 }
