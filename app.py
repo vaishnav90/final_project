@@ -439,7 +439,7 @@ def send_message():
         recipient_id = request.form['recipient_id']
         content = request.form['content']
         
-        # Find existing conversation
+        # Find existing conversation//
         conversation = messages_collection.find_one({
             'listing_id': listing_id,
             'participants': {'$all': [current_user.id, recipient_id]}
