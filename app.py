@@ -31,6 +31,8 @@ app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Replace with your email
 app.config['MAIL_PASSWORD'] = 'your-email-password'  # Replace with your email password or app password
 app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
 
+messages_collection.create_index([('participants', 1)])
+messages_collection.create_index([('listing_id', 1)])
 mail = Mail(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
@@ -368,28 +370,47 @@ def liked_items():
 @app.route('/messages')
 @login_required
 def messages():
-    # Get user's message conversations
-    user_messages = list(messages_collection.find({
-        'participants': current_user.id
-    }).sort('last_message', -1))
+    try:
+        # Get all conversations where current user is a participant
+        conversations = list(messages_collection.find({
+            'participants': current_user.id
+        }).sort('last_message', -1))
+
+        if not conversations:
+            return render_template('messages.html', conversations=[])
+
+        # Prepare data for template
+        enhanced_conversations = []
+        
+        for conv in conversations:
+            # Get listing info
+            listing = listings_collection.find_one({'_id': ObjectId(conv['listing_id'])})
+            
+            # Get other participant info
+            other_user_id = next(p for p in conv['participants'] if p != current_user.id)
+            other_user = users_collection.find_one({'_id': ObjectId(other_user_id)})
+            
+            # Get transaction if exists
+            transaction = None
+            if 'transaction_id' in conv:
+                transaction = transactions_collection.find_one({
+                    '_id': ObjectId(conv['transaction_id'])
+                })
+
+            enhanced_conversations.append({
+                'conversation': conv,
+                'listing': listing,
+                'other_user': other_user,
+                'transaction': transaction  # Include transaction directly
+            })
+
+        return render_template('messages.html', 
+                            conversations=enhanced_conversations)
     
-    # Get listings and transactions for each message
-    listings = {}
-    transactions = {}
-    for message in user_messages:
-        if 'listing_id' in message:
-            listing = listings_collection.find_one({'_id': ObjectId(message['listing_id'])})
-            if listing:
-                listings[str(message['_id'])] = listing
-        if 'transaction_id' in message:
-            transaction = transactions_collection.find_one({'_id': ObjectId(message['transaction_id'])})
-            if transaction:
-                transactions[str(message['_id'])] = transaction
-    
-    return render_template('messages.html',
-                         messages=user_messages,
-                         listings=listings,
-                         transactions=transactions)
+    except Exception as e:
+        print(f"Error loading messages: {str(e)}")
+        flash('Error loading messages', 'danger')
+        return redirect(url_for('home'))
 @app.route('/messages/<conversation_id>')
 @login_required
 def conversation(conversation_id):
@@ -800,71 +821,85 @@ def create_transaction():
     try:
         # Get form data
         listing_id = request.form['listing_id']
+        seller_id = request.form['seller_id']
         price = float(request.form['price'])
         meeting_method = request.form['meeting_method']
         meeting_location = request.form['meeting_location']
         meeting_time = request.form['meeting_time']
-
-        # Get listing and user data
+        
+        # Get listing and user info
         listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
-        seller = users_collection.find_one({'_id': ObjectId(listing['seller_id'])})
+        seller = users_collection.find_one({'_id': ObjectId(seller_id)})
         buyer = users_collection.find_one({'_id': ObjectId(current_user.id)})
-
-        # Validate data
-        if not all([listing, seller, buyer]):
-            flash('Invalid transaction data', 'error')
-            return redirect(url_for('listing_detail', listing_id=listing_id))
-
-        if not seller.get('email'):
-            flash('Seller contact information unavailable', 'error')
-            return redirect(url_for('listing_detail', listing_id=listing_id))
-
+        
         # Create transaction record
-        transaction_data = {
+        new_transaction = {
             'listing_id': listing_id,
             'buyer_id': current_user.id,
-            'seller_id': str(seller['_id']),
+            'seller_id': seller_id,
             'price': price,
             'original_price': listing['price'],
             'status': 'pending',
             'meeting': {
                 'method': meeting_method,
                 'location': meeting_location,
-                'time': meeting_time
+                'scheduled_time': meeting_time,
+                'completed_at': None
             },
             'created_at': datetime.utcnow()
         }
-
-        # Save to database
-        transaction_id = transactions_collection.insert_one(transaction_data).inserted_id
-
-        # Send email notification
-        try:
-            msg = Message(
-                subject=f"New Offer for Your {listing['title']}",
-                recipients=[seller['email']],
-                sender=app.config['MAIL_DEFAULT_SENDER'],
-                html=render_template(
-                    'email/new_offer.html',
-                    listing=listing,
-                    buyer=buyer,
-                    price=price,
-                    meeting_method=meeting_method,
-                    meeting_location=meeting_location,
-                    meeting_time=meeting_time
-                )
+        
+        # Save transaction
+        transaction_id = str(transactions_collection.insert_one(new_transaction).inserted_id)
+        
+        # Create or update conversation
+        conversation = messages_collection.find_one({
+            'listing_id': listing_id,
+            'participants': {'$all': [current_user.id, seller_id]}
+        })
+        
+        new_message = {
+            'sender_id': current_user.id,
+            'content': f"New offer of ${price} for {listing['title']}",
+            'sent_at': datetime.utcnow(),
+            'read': False,
+            'is_offer': True,
+            'transaction_id': transaction_id
+        }
+        
+        if conversation:
+            # Update existing conversation
+            messages_collection.update_one(
+                {'_id': conversation['_id']},
+                {
+                    '$push': {'messages': new_message},
+                    '$set': {'last_message': datetime.utcnow()}
+                }
             )
-            mail.send(msg)
-            flash('Offer submitted and seller notified!', 'success')
-        except Exception as e:
-            print(f"Email failed to send: {str(e)}")
-            flash('Offer submitted but could not notify seller by email', 'warning')
-
+            conversation_id = str(conversation['_id'])
+        else:
+            # Create new conversation
+            new_conversation = {
+                'listing_id': listing_id,
+                'participants': [current_user.id, seller_id],
+                'messages': [new_message],
+                'created_at': datetime.utcnow(),
+                'last_message': datetime.utcnow()
+            }
+            conversation_id = str(messages_collection.insert_one(new_conversation).inserted_id)
+        
+        # Update listing status
+        listings_collection.update_one(
+            {'_id': ObjectId(listing_id)},
+            {'$set': {'status': 'pending'}}
+        )
+        
+        flash('Your offer has been submitted!', 'success')
         return redirect(url_for('messages'))
-
+        
     except Exception as e:
-        print(f"Transaction error: {str(e)}")
-        flash('Error creating offer', 'error')
+        print(f"Error creating transaction: {str(e)}")
+        flash('Error creating offer', 'danger')
         return redirect(url_for('listing_detail', listing_id=listing_id))
 if __name__ == "__main__":
     app.run(debug=True, port=5002)

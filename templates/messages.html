@@ -6,6 +6,7 @@
     <title>Messages | APP</title>
     <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet" />
     <style>
+        
         .messages-container {
             max-width: 1200px;
             margin: 2rem auto;
@@ -195,7 +196,6 @@
             </div>
         </nav>
     </header>
-
     <main class="messages-container">
         <div class="messages-header">
             <h1>Messages</h1>
@@ -211,7 +211,7 @@
             {% endif %}
         {% endwith %}
         
-        {% if not messages %}
+        {% if not conversations %}
             <div class="no-messages">
                 <p>You don't have any messages yet.</p>
                 <a href="{{ url_for('listings') }}">
@@ -220,71 +220,70 @@
             </div>
         {% else %}
             <div class="messages-list">
-                {% for message in messages %}
-    {% set message_id_str = message._id|string %}
-    <div class="message-card" onclick="window.location='{{ url_for('conversation', conversation_id=message._id) }}'">
-        <div class="message-header">
-            {% set other_user_id = message.participants[0] if message.participants[1] == current_user.id else message.participants[1] %}
-            {% set other_user = message.other_user %}
-            <span class="message-sender">{{ other_user.username if other_user else 'Unknown User' }}</span>
-            <span class="message-time">{{ message.last_message.strftime('%b %d, %I:%M %p') }}</span>
-        </div>
-        <div class="message-preview">
-            {{ message.messages[-1].content|truncate(100) }}
-        </div>
-        
-        {% if message.listing_id and listings.get(message_id_str) %}
-            {% set listing = listings[message_id_str] %}
-            <div class="message-listing">
-                {% if listing.images and listing.images|length > 0 %}
-                    <img src="{{ url_for('static', filename='uploads/' + listing.images[0]) }}" alt="{{ listing.title }}">
-                {% else %}
-                    <div style="width: 60px; height: 60px; background: #f8f8f8; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-                        <span>📷</span>
-                    </div>
-                {% endif %}
-                <div class="message-listing-info">
-                    <div class="message-listing-title">{{ listing.title }}</div>
-                    <div class="message-listing-price">${{ "%.2f"|format(listing.price) }}</div>
-                </div>
-            </div>
-        {% endif %}
-        
-        {% if message.transaction_id %}
-            {% set transaction = transactions.get(message_id_str) %}
-            {% if transaction %}
-                <div class="transaction-status">
-                    <strong>Offer Status:</strong> 
-                    <span class="status-{{ transaction.status }}">
-                        {{ transaction.status.title() }}
-                    </span>
-                    
-                    {% if transaction.status == 'pending' and transaction.seller_id == current_user.id %}
-                        <div class="transaction-actions">
-                            <form method="POST" action="{{ url_for('handle_offer', transaction_id=message.transaction_id) }}">
-                                <input type="hidden" name="action" value="accept">
-                                <button type="submit" class="btn btn-accent">Accept Offer</button>
-                            </form>
-                            <form method="POST" action="{{ url_for('handle_offer', transaction_id=message.transaction_id) }}">
-                                <input type="hidden" name="action" value="decline">
-                                <button type="submit" class="btn btn-outline">Decline</button>
-                            </form>
-                            <form method="POST" action="{{ url_for('handle_offer', transaction_id=message.transaction_id) }}">
-                                <input type="hidden" name="action" value="counter">
-                                <input type="number" name="counter_price" placeholder="Counter price" required>
-                                <button type="submit" class="btn">Counter</button>
-                            </form>
+                {% for data in conversations %}
+                    <div class="message-card" onclick="window.location='{{ url_for('conversation', conversation_id=data.conversation._id) }}'">
+                        <div class="message-header">
+                            <span class="message-sender">{{ data.other_user.username }}</span>
+                            <span class="message-time">{{ data.conversation.last_message.strftime('%b %d, %I:%M %p') }}</span>
                         </div>
-                    {% elif transaction.status == 'accepted' and transaction.seller_id == current_user.id %}
-                        <form method="POST" action="{{ url_for('complete_transaction', transaction_id=message.transaction_id) }}">
-                            <button type="submit" class="btn btn-accent">Mark as Completed</button>
-                        </form>
-                    {% endif %}
-                </div>
-            {% endif %}
-        {% endif %}
-    </div>
-{% endfor %}
+                        
+                        <div class="message-preview">
+                            {% if data.conversation.messages[-1].is_offer %}
+                                <div class="offer-message">
+                                    <strong>Offer:</strong> {{ data.conversation.messages[-1].content }}
+                                </div>
+                            {% else %}
+                                {{ data.conversation.messages[-1].content|truncate(100) }}
+                            {% endif %}
+                        </div>
+                        
+                        {% if data.listing %}
+                            <div class="message-listing">
+                                {% if data.listing.images and data.listing.images|length > 0 %}
+                                    <img src="{{ url_for('static', filename='uploads/' + data.listing.images[0]) }}" alt="{{ data.listing.title }}">
+                                {% else %}
+                                    <div class="no-image-placeholder">📷</div>
+                                {% endif %}
+                                <div class="message-listing-info">
+                                    <div class="message-listing-title">{{ data.listing.title }}</div>
+                                    <div class="message-listing-price">${{ "%.2f"|format(data.listing.price) }}</div>
+                                    <div class="listing-status">Status: {{ data.listing.status }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if data.transaction %}
+                            <div class="transaction-status">
+                                <strong>Offer Status:</strong> 
+                                <span class="status-{{ data.transaction.status }}">
+                                    {{ data.transaction.status.title() }}
+                                </span>
+                                
+                                {% if data.transaction.status == 'pending' and data.transaction.seller_id == current_user.id %}
+                                    <div class="transaction-actions">
+                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=data.transaction._id) }}" onsubmit="event.stopPropagation()">
+                                            <input type="hidden" name="action" value="accept">
+                                            <button type="submit" class="btn btn-accent">Accept Offer</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=data.transaction._id) }}" onsubmit="event.stopPropagation()">
+                                            <input type="hidden" name="action" value="decline">
+                                            <button type="submit" class="btn btn-outline">Decline</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=data.transaction._id) }}" onsubmit="event.stopPropagation()">
+                                            <input type="hidden" name="action" value="counter">
+                                            <input type="number" name="counter_price" placeholder="Counter price" required>
+                                            <button type="submit" class="btn">Counter</button>
+                                        </form>
+                                    </div>
+                                {% elif data.transaction.status == 'accepted' and data.transaction.seller_id == current_user.id %}
+                                    <form method="POST" action="{{ url_for('complete_transaction', transaction_id=data.transaction._id) }}" onsubmit="event.stopPropagation()">
+                                        <button type="submit" class="btn btn-accent">Mark as Completed</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
             </div>
         {% endif %}
     </main>
