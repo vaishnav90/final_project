@@ -990,3 +990,113 @@ html, body {
     gap: 0.5rem;
     flex-wrap: wrap;
 }
+/* Transaction action buttons */
+.btn-accept {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-decline {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-counter {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-complete {
+    background-color: #6c757d;
+    color: white;
+}
+
+.transaction-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.transaction-actions input[type="number"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100px;
+}
+
+/* Status badges */
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-accepted {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-declined {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-countered {
+    background-color: #cce5ff;
+    color: #004085;
+}
+/* Add to your CSS */
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.status-accepted {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.status-declined {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.status-countered {
+    background-color: #cce5ff;
+    color: #004085;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.status-completed {
+    background-color: #e2e3e5;
+    color: #383d41;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.transaction-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.transaction-actions input[type="number"] {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}

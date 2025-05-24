@@ -376,10 +376,6 @@ def messages():
             'participants': current_user.id
         }).sort('last_message', -1))
 
-        if not conversations:
-            return render_template('messages.html', conversations=[])
-
-        # Prepare data for template
         enhanced_conversations = []
         
         for conv in conversations:
@@ -390,18 +386,19 @@ def messages():
             other_user_id = next(p for p in conv['participants'] if p != current_user.id)
             other_user = users_collection.find_one({'_id': ObjectId(other_user_id)})
             
-            # Get transaction if exists
-            transaction = None
-            if 'transaction_id' in conv:
-                transaction = transactions_collection.find_one({
-                    '_id': ObjectId(conv['transaction_id'])
-                })
+            # Get ALL transactions for this conversation
+            transactions = list(transactions_collection.find({
+                '$or': [
+                    {'listing_id': conv['listing_id'], 'buyer_id': current_user.id},
+                    {'listing_id': conv['listing_id'], 'seller_id': current_user.id}
+                ]
+            }).sort('created_at', -1))
 
             enhanced_conversations.append({
                 'conversation': conv,
                 'listing': listing,
                 'other_user': other_user,
-                'transaction': transaction  # Include transaction directly
+                'transactions': transactions  # Now passing all transactions
             })
 
         return render_template('messages.html', 
@@ -555,7 +552,6 @@ def save_listing(listing_id):
         return jsonify({'status': status, 'saves': saves_count})
     except:
         return jsonify({'error': 'Failed to save listing'}), 400
-
 @app.route('/handle_offer/<transaction_id>', methods=['POST'])
 @login_required
 def handle_offer(transaction_id):
@@ -564,80 +560,73 @@ def handle_offer(transaction_id):
         transaction = transactions_collection.find_one({'_id': ObjectId(transaction_id)})
         
         if not transaction:
-            flash('Transaction not found.', 'danger')
-            return redirect(url_for('transactions'))
+            flash('Transaction not found', 'danger')
+            return redirect(url_for('messages'))
+
+        # Verify current user is authorized
+        if action in ['accept', 'decline', 'counter'] and transaction['seller_id'] != current_user.id:
+            flash('You are not authorized to handle this offer', 'danger')
+            return redirect(url_for('messages'))
         
-        if transaction['seller_id'] != current_user.id:
-            flash('You are not authorized to handle this offer.', 'danger')
-            return redirect(url_for('transactions'))
-        
+        if action == 'accept' and transaction['buyer_id'] != current_user.id and transaction['status'] == 'countered':
+            flash('You are not authorized to handle this offer', 'danger')
+            return redirect(url_for('messages'))
+
         listing = listings_collection.find_one({'_id': ObjectId(transaction['listing_id'])})
-        
+        buyer = users_collection.find_one({'_id': ObjectId(transaction['buyer_id'])})
+        seller = users_collection.find_one({'_id': ObjectId(transaction['seller_id'])})
+
         if action == 'accept':
-            # Accept the offer
+            # Update transaction status
             transactions_collection.update_one(
                 {'_id': ObjectId(transaction_id)},
-                {'$set': {
-                    'status': 'accepted',
-                    'updated_at': datetime.utcnow()
-                }}
+                {'$set': {'status': 'accepted', 'updated_at': datetime.utcnow()}}
             )
             
-            # Mark listing as sold
-            listings_collection.update_one(
-                {'_id': ObjectId(transaction['listing_id'])},
-                {'$set': {'status': 'sold'}}
-            )
-            
-            # Send message to buyer
-            messages_collection.update_one(
-                {'transaction_id': transaction_id},
-                {'$push': {
-                    'messages': {
-                        'sender_id': current_user.id,
-                        'content': f"I've accepted your offer of ${transaction['price']}! Let's arrange the pickup.",
-                        'sent_at': datetime.utcnow(),
-                        'read': False
-                    }
-                }}
-            )
-            
-            flash('Offer accepted! The item has been marked as sold.', 'success')
-            
-        elif action == 'decline':
-            # Decline the offer
-            transactions_collection.update_one(
-                {'_id': ObjectId(transaction_id)},
-                {'$set': {
-                    'status': 'declined',
-                    'updated_at': datetime.utcnow()
-                }}
-            )
-            
-            # Reopen listing if it was pending
-            if listing['status'] == 'pending':
+            # Update listing status if seller accepted
+            if transaction['seller_id'] == current_user.id:
                 listings_collection.update_one(
                     {'_id': ObjectId(transaction['listing_id'])},
-                    {'$set': {'status': 'available'}}
+                    {'$set': {'status': 'pending'}}
                 )
             
-            # Send message to buyer
+            # Add message to conversation
             messages_collection.update_one(
                 {'transaction_id': transaction_id},
                 {'$push': {
                     'messages': {
                         'sender_id': current_user.id,
-                        'content': "Thank you for your offer, but I've decided to decline it.",
+                        'content': f"Offer accepted! Let's arrange the exchange." if transaction['seller_id'] == current_user.id else f"Counter offer accepted!",
                         'sent_at': datetime.utcnow(),
                         'read': False
                     }
                 }}
             )
             
-            flash('Offer declined.', 'info')
+            flash('Offer accepted!', 'success')
+
+        elif action == 'decline':
+            transactions_collection.update_one(
+                {'_id': ObjectId(transaction_id)},
+                {'$set': {'status': 'declined', 'updated_at': datetime.utcnow()}}
+            )
             
+            # Add message to conversation
+            messages_collection.update_one(
+                {'transaction_id': transaction_id},
+                {'$push': {
+                    'messages': {
+                        'sender_id': current_user.id,
+                        'content': "Thank you for your offer, but I've decided to decline it." if transaction['seller_id'] == current_user.id else "I've decided to decline the counter offer.",
+                        'sent_at': datetime.utcnow(),
+                        'read': False
+                    }
+                }}
+            )
+            
+            flash('Offer declined', 'info')
+
         elif action == 'counter':
-            # Counter the offer
             counter_price = float(request.form['counter_price'])
             
             transactions_collection.update_one(
@@ -649,26 +638,28 @@ def handle_offer(transaction_id):
                 }}
             )
             
-            # Send message to buyer
+            # Add message to conversation
             messages_collection.update_one(
                 {'transaction_id': transaction_id},
                 {'$push': {
                     'messages': {
                         'sender_id': current_user.id,
-                        'content': f"I've countered your offer with ${counter_price}. What do you think?",
+                        'content': f"I've countered with ${counter_price:.2f}. What do you think?",
                         'sent_at': datetime.utcnow(),
-                        'read': False
+                        'read': False,
+                        'is_offer': True
                     }
                 }}
             )
             
             flash('Counter offer sent!', 'success')
-            
-        return redirect(url_for('messages'))
-    except Exception as e:
-        flash(f'Error handling offer: {str(e)}', 'danger')
-        return redirect(url_for('transactions'))
 
+        return redirect(url_for('messages'))
+
+    except Exception as e:
+        print(f"Error handling offer: {str(e)}")
+        flash('Error processing your request', 'danger')
+        return redirect(url_for('messages'))
 @app.route('/complete_transaction/<transaction_id>', methods=['POST'])
 @login_required
 def complete_transaction(transaction_id):
@@ -827,18 +818,13 @@ def create_transaction():
         meeting_location = request.form['meeting_location']
         meeting_time = request.form['meeting_time']
         
-        # Get listing and user info
-        listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
-        seller = users_collection.find_one({'_id': ObjectId(seller_id)})
-        buyer = users_collection.find_one({'_id': ObjectId(current_user.id)})
-        
         # Create transaction record
         new_transaction = {
             'listing_id': listing_id,
             'buyer_id': current_user.id,
             'seller_id': seller_id,
             'price': price,
-            'original_price': listing['price'],
+            'original_price': float(request.form.get('original_price', price)),
             'status': 'pending',
             'meeting': {
                 'method': meeting_method,
@@ -846,13 +832,14 @@ def create_transaction():
                 'scheduled_time': meeting_time,
                 'completed_at': None
             },
-            'created_at': datetime.utcnow()
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
         }
         
         # Save transaction
         transaction_id = str(transactions_collection.insert_one(new_transaction).inserted_id)
         
-        # Create or update conversation
+        # Find or create conversation
         conversation = messages_collection.find_one({
             'listing_id': listing_id,
             'participants': {'$all': [current_user.id, seller_id]}
@@ -860,7 +847,7 @@ def create_transaction():
         
         new_message = {
             'sender_id': current_user.id,
-            'content': f"New offer of ${price} for {listing['title']}",
+            'content': f"New offer of ${price:.2f}",
             'sent_at': datetime.utcnow(),
             'read': False,
             'is_offer': True,
@@ -887,12 +874,6 @@ def create_transaction():
                 'last_message': datetime.utcnow()
             }
             conversation_id = str(messages_collection.insert_one(new_conversation).inserted_id)
-        
-        # Update listing status
-        listings_collection.update_one(
-            {'_id': ObjectId(listing_id)},
-            {'$set': {'status': 'pending'}}
-        )
         
         flash('Your offer has been submitted!', 'success')
         return redirect(url_for('messages'))
