@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Listing | APP</title>
+    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet" />
+    <style>
+        .edit-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .edit-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .edit-form {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+        }
+        
+        .current-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .current-image {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        
+        .current-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .remove-image-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+        }
+        
+        .status-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-top: 2rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+        }
+        
+        .status-available {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-sold {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <!-- Your existing header/navigation -->
+    </header>
+
+    <main class="edit-container">
+        <div class="edit-header">
+            <h1>Edit Listing</h1>
+            <p>Update your listing details or mark as sold</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form class="edit-form" method="POST" enctype="multipart/form-data">
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h3>Basic Information</h3>
+                <div class="form-group">
+                    <label for="title">Item Title <span class="required">*</span></label>
+                    <input type="text" id="title" name="title" required 
+                           value="{{ listing.title }}" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description <span class="required">*</span></label>
+                    <textarea id="description" name="description" required 
+                              class="form-control">{{ listing.description }}</textarea>
+                </div>
+            </div>
+            
+            <!-- Category & Details -->
+            <div class="form-section">
+                <h3>Category & Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">Category <span class="required">*</span></label>
+                        <select id="category" name="category" required class="form-control">
+                            {% for category in categories %}
+                                <option value="{{ category.name }}" 
+                                        {% if category.name == listing.category %}selected{% endif %}>
+                                    {{ category.display_name or category.name.replace('_', ' ').title() }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="size">Size <span class="required">*</span></label>
+                        <input type="text" id="size" name="size" required 
+                               value="{{ listing.size }}" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="condition">Condition <span class="required">*</span></label>
+                    <select id="condition" name="condition" required class="form-control">
+                        <option value="new" {% if listing.condition == 'new' %}selected{% endif %}>New with tags</option>
+                        <option value="like-new" {% if listing.condition == 'like-new' %}selected{% endif %}>Like new</option>
+                        <option value="gently-used" {% if listing.condition == 'gently-used' %}selected{% endif %}>Gently used</option>
+                        <option value="good" {% if listing.condition == 'good' %}selected{% endif %}>Good</option>
+                        <option value="well-worn" {% if listing.condition == 'well-worn' %}selected{% endif %}>Well worn</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Pricing -->
+            <div class="form-section">
+                <h3>Pricing</h3>
+                <div class="form-group">
+                    <label for="price">Price (USD) <span class="required">*</span></label>
+                    <input type="number" id="price" name="price" required 
+                           min="1" step="0.01" value="{{ listing.price }}" class="form-control">
+                </div>
+            </div>
+            
+            <!-- Location -->
+            <div class="form-section">
+                <h3>Location</h3>
+                <div class="form-group">
+                    <label for="neighborhood">Neighborhood <span class="required">*</span></label>
+                    <select id="neighborhood" name="neighborhood" required class="form-control">
+                        {% for neighborhood in neighborhoods %}
+                            <option value="{{ neighborhood.name }}" 
+                                    {% if neighborhood.name == listing.neighborhood %}selected{% endif %}>
+                                {{ neighborhood.display_name or neighborhood.name.replace('-', ' ').title() }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Images -->
+            <div class="form-section">
+                <h3>Photos</h3>
+                <div class="form-group">
+                    <label>Current Images</label>
+                    <div class="current-images">
+                        {% for image in listing.images %}
+                            <div class="current-image">
+                                <img src="{{ url_for('static', filename='uploads/' + image) }}" 
+                                     alt="{{ listing.title }}">
+                                <button type="button" class="remove-image-btn" 
+                                        data-image="{{ image }}">&times;</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <label>Add New Images</label>
+                    <div class="file-upload-area" id="file-upload-area">
+                        <div class="upload-icon">📸</div>
+                        <div class="upload-text">Click to upload photos or drag and drop</div>
+                        <div class="upload-subtext">Upload up to 5 high-quality photos (JPG, PNG, max 5MB each)</div>
+                        <input type="file" id="images" name="images" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <div class="image-preview" id="image-preview"></div>
+                </div>
+            </div>
+            
+            <!-- Status -->
+            <div class="status-section">
+                <h3>Listing Status</h3>
+                <div class="form-group">
+                    <span class="status-badge status-{{ listing.status }}">
+                        Current Status: {{ listing.status.title() }}
+                    </span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Change Status</label>
+                    <select id="status" name="status" class="form-control">
+                        <option value="available" {% if listing.status == 'available' %}selected{% endif %}>Available</option>
+                        <option value="pending" {% if listing.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="sold" {% if listing.status == 'sold' %}selected{% endif %}>Sold</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Submit -->
+            <div class="submit-section">
+                <button type="submit" class="btn btn-accent">Save Changes</button>
+                <a href="{{ url_for('my_listings') }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Image upload and removal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('images');
+            const fileUploadArea = document.getElementById('file-upload-area');
+            const imagePreview = document.getElementById('image-preview');
+            const form = document.querySelector('.edit-form');
+            
+            let selectedFiles = [];
+            const maxFiles = 5;
+            const maxFileSize = 5 * 1024 * 1024; // 5MB
+
+            // File upload area click handler
+            fileUploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            // File input change handler
+            fileInput.addEventListener('change', function() {
+                const files = Array.from(this.files);
+                handleFiles(files);
+            });
+
+            // Remove existing image
+            document.querySelectorAll('.remove-image-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const imageName = this.getAttribute('data-image');
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'removed_images';
+                    input.value = imageName;
+                    form.appendChild(input);
+                    this.parentElement.remove();
+                });
+            });
+
+            function handleFiles(files) {
+                const validFiles = files.filter(file => {
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please select only image files.');
+                        return false;
+                    }
+                    if (file.size > maxFileSize) {
+                        alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (selectedFiles.length + validFiles.length > maxFiles) {
+                    alert(`You can only upload up to ${maxFiles} images.`);
+                    return;
+                }
+
+                validFiles.forEach(file => {
+                    selectedFiles.push(file);
+                    displayImagePreview(file);
+                });
+
+                updateFileInput();
+            }
+
+            function displayImagePreview(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'current-image';
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                    `;
+                    imagePreview.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function updateFileInput() {
+                const dt = new DataTransfer();
+                selectedFiles.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+            }
+        });
+    </script>
+</body>
+</html>

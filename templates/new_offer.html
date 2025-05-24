@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .content { margin: 20px 0; }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .details { background: #f9f9f9; padding: 15px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>You've Received a New Offer!</h2>
+        </div>
+        
+        <div class="content">
+            <p>Hello,</p>
+            <p>{{ buyer.username }} has made an offer on your listing:</p>
+            
+            <div class="details">
+                <h3>{{ listing.title }}</h3>
+                <p><strong>Original Price:</strong> ${{ "%.2f"|format(listing.price) }}</p>
+                <p><strong>Offer Amount:</strong> ${{ "%.2f"|format(price) }}</p>
+                <p><strong>Meeting Details:</strong></p>
+                <ul>
+                    <li>Method: {{ meeting_method|title }}</li>
+                    <li>Location: {{ meeting_location }}</li>
+                    <li>Time: {{ meeting_time }}</li>
+                </ul>
+            </div>
+            
+            <p>Please log in to your account to respond to this offer.</p>
+            
+            <a href="{{ url_for('messages', _external=True) }}" class="button">
+                View Offer in Messages
+            </a>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for using our platform!</p>
+        </div>
+    </div>
+</body>
+</html>

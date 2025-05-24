@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages | APP</title>
+    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet" />
+    <style>
+        .messages-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .messages-header {
+            margin-bottom: 2rem;
+        }
+        
+        .messages-list {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .message-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .message-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .message-sender {
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+        
+        .message-time {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .message-preview {
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .message-listing {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .message-listing img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 1rem;
+        }
+        
+        .message-listing-info {
+            flex: 1;
+        }
+        
+        .message-listing-title {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .message-listing-price {
+            color: var(--primary-dark);
+            font-weight: bold;
+        }
+        
+        .transaction-status {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: var(--radius);
+        }
+        
+        .transaction-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .transaction-actions input[type="number"] {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+        
+        /* Status badges */
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .status-accepted {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .status-declined {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .status-countered {
+            background-color: #cce5ff;
+            color: #004085;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .status-completed {
+            background-color: #e2e3e5;
+            color: #383d41;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .no-messages {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="logo-icon">♻️</span> 
+                <a href="{{ url_for('home') }}" style="text-decoration: none; color: inherit;">OurAPP</a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('listings') }}">Browse</a>
+                <a href="{{ url_for('how_it_works') }}">How It Works</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('messages') }}">Messages</a>
+                    <a href="{{ url_for('my_listings') }}">My Listings</a>
+                {% endif %}
+            </div>
+            <div class="nav-buttons">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('liked_items') }}">
+                        <button class="btn">Saved</button>
+                    </a>
+                    <a href="{{ url_for('sell') }}">
+                        <button class="btn btn-accent">Sell Item</button>
+                    </a>
+                    <a href="{{ url_for('logout') }}">
+                        <button class="btn">Logout</button>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('signup') }}">
+                        <button class="btn">Sign Up</button>
+                    </a>
+                    <a href="{{ url_for('login') }}">
+                        <button class="btn">Login</button>
+                    </a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="messages-container">
+        <div class="messages-header">
+            <h1>Messages</h1>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% if not messages %}
+            <div class="no-messages">
+                <p>You don't have any messages yet.</p>
+                <a href="{{ url_for('listings') }}">
+                    <button class="btn btn-accent">Browse Listings</button>
+                </a>
+            </div>
+        {% else %}
+            <div class="messages-list">
+                {% for message in messages %}
+    {% set message_id_str = message._id|string %}
+    <div class="message-card" onclick="window.location='{{ url_for('conversation', conversation_id=message._id) }}'">
+        <div class="message-header">
+            {% set other_user_id = message.participants[0] if message.participants[1] == current_user.id else message.participants[1] %}
+            {% set other_user = message.other_user %}
+            <span class="message-sender">{{ other_user.username if other_user else 'Unknown User' }}</span>
+            <span class="message-time">{{ message.last_message.strftime('%b %d, %I:%M %p') }}</span>
+        </div>
+        <div class="message-preview">
+            {{ message.messages[-1].content|truncate(100) }}
+        </div>
+        
+        {% if message.listing_id and listings.get(message_id_str) %}
+            {% set listing = listings[message_id_str] %}
+            <div class="message-listing">
+                {% if listing.images and listing.images|length > 0 %}
+                    <img src="{{ url_for('static', filename='uploads/' + listing.images[0]) }}" alt="{{ listing.title }}">
+                {% else %}
+                    <div style="width: 60px; height: 60px; background: #f8f8f8; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                        <span>📷</span>
+                    </div>
+                {% endif %}
+                <div class="message-listing-info">
+                    <div class="message-listing-title">{{ listing.title }}</div>
+                    <div class="message-listing-price">${{ "%.2f"|format(listing.price) }}</div>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if message.transaction_id %}
+            {% set transaction = transactions.get(message_id_str) %}
+            {% if transaction %}
+                <div class="transaction-status">
+                    <strong>Offer Status:</strong> 
+                    <span class="status-{{ transaction.status }}">
+                        {{ transaction.status.title() }}
+                    </span>
+                    
+                    {% if transaction.status == 'pending' and transaction.seller_id == current_user.id %}
+                        <div class="transaction-actions">
+                            <form method="POST" action="{{ url_for('handle_offer', transaction_id=message.transaction_id) }}">
+                                <input type="hidden" name="action" value="accept">
+                                <button type="submit" class="btn btn-accent">Accept Offer</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('handle_offer', transaction_id=message.transaction_id) }}">
+                                <input type="hidden" name="action" value="decline">
+                                <button type="submit" class="btn btn-outline">Decline</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('handle_offer', transaction_id=message.transaction_id) }}">
+                                <input type="hidden" name="action" value="counter">
+                                <input type="number" name="counter_price" placeholder="Counter price" required>
+                                <button type="submit" class="btn">Counter</button>
+                            </form>
+                        </div>
+                    {% elif transaction.status == 'accepted' and transaction.seller_id == current_user.id %}
+                        <form method="POST" action="{{ url_for('complete_transaction', transaction_id=message.transaction_id) }}">
+                            <button type="submit" class="btn btn-accent">Mark as Completed</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endfor %}
+            </div>
+        {% endif %}
+    </main>
+
+    <script>
+        // Prevent clicking on transaction actions from navigating to conversation
+        document.querySelectorAll('.transaction-actions, .transaction-actions button, .transaction-actions input').forEach(element => {
+            element.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    </script>
+</body>
+</html>

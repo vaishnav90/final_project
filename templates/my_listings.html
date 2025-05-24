@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Listings | APP</title>
+    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet" />
+    <style>
+        .listing-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .offer-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .offer-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .counter-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-accepted {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-declined {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-countered {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="logo-icon">♻️</span> 
+                <a href="{{ url_for('home') }}" style="text-decoration: none; color: inherit;">OurAPP</a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('listings') }}">Browse</a>
+                <a href="{{ url_for('how_it_works') }}">How It Works</a>
+                <a href="{{ url_for('messages') }}">Messages</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="{{ url_for('liked_items') }}">
+                    <button class="btn">Saved</button>
+                </a>
+                <a href="{{ url_for('sell') }}">
+                    <button class="btn btn-accent">Sell Item</button>
+                </a>
+                <a href="{{ url_for('logout') }}">
+                    <button class="btn">Logout</button>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-container">
+        <section>
+            <div class="section-header">
+                <h2 class="section-title">My Listings</h2>
+                <div class="view-options">
+                    <a href="{{ url_for('sell') }}">
+                        <button class="btn btn-accent">+ New Listing</button>
+                    </a>
+                </div>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            {% if not listings %}
+                <div style="text-align: center; padding: 2rem;">
+                    <p>You haven't listed any items yet. <a href="{{ url_for('sell') }}">Create your first listing!</a></p>
+                </div>
+            {% else %}
+                <div class="listings-grid">
+                    {% for listing in listings %}
+                        <div class="listing-card">
+                            <div class="card-img">
+                                {% if listing.images and listing.images|length > 0 %}
+                                    <img src="{{ url_for('static', filename='uploads/' + listing.images[0]) }}" alt="{{ listing.title }}" class="card-img-photo">
+                                {% else %}
+                                    <div class="card-img-placeholder">{{ listing.title }}</div>
+                                {% endif %}
+                                <div class="card-badge">{{ listing.status.title() }}</div>
+                            </div>
+                            <div class="card-content">
+                                <h3 class="card-title">{{ listing.title }}</h3>
+                                <p class="card-price">${{ "%.2f"|format(listing.price) }}</p>
+                                <p class="card-location">
+                                    <span class="material-icons">📍</span> 
+                                    <span class="neighborhood-tag">{{ listing.neighborhood.replace('-', ' ').title() }}</span>
+                                </p>
+                                <div class="card-meta">
+                                    <span>Views: {{ listing.views }}</span>
+                                    <span>Saves: {{ listing.saves }}</span>
+                                </div>
+                                
+                                <div class="listing-actions">
+                                    <a href="{{ url_for('listing_detail', listing_id=listing._id) }}">
+                                        <button class="btn btn-outline">View</button>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('update_listing', listing_id=listing._id) }}" style="display: inline;">
+                                        <input type="hidden" name="status" value="{% if listing.status == 'available' %}pending{% else %}available{% endif %}">
+                                        <button type="submit" class="btn">
+                                            {% if listing.status == 'available' %}Mark as Pending{% else %}Make Available{% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('delete_listing', listing_id=listing._id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this listing?')">Delete</button>
+                                    </form>
+                                </div>
+                                
+                                {% if offers_by_listing.get(str(listing._id)) %}
+                                <div class="offers-section">
+                                    <h4>Offers ({{ offers_by_listing[str(listing._id)]|length }})</h4>
+                                    {% for offer in offers_by_listing[str(listing._id)] %}
+                                        <div class="offer-card">
+                                            <p><strong>${{ "%.2f"|format(offer.price) }}</strong> from {{ users_collection.find_one({'_id': ObjectId(offer.buyer_id)}).username }}</p>
+                                            <p>Status: <span class="status-{{ offer.status }}">{{ offer.status.title() }}</span></p>
+                                            
+                                            {% if offer.status == 'pending' %}
+                                                <div class="offer-actions">
+                                                    <form method="POST" action="{{ url_for('handle_offer', transaction_id=offer._id) }}">
+                                                        <input type="hidden" name="action" value="accept">
+                                                        <button type="submit" class="btn btn-accent">Accept</button>
+                                                    </form>
+                                                    <form method="POST" action="{{ url_for('handle_offer', transaction_id=offer._id) }}">
+                                                        <input type="hidden" name="action" value="decline">
+                                                        <button type="submit" class="btn btn-outline">Decline</button>
+                                                    </form>
+                                                    <form method="POST" action="{{ url_for('handle_offer', transaction_id=offer._id) }}">
+                                                        <input type="hidden" name="action" value="counter">
+                                                        <input type="number" name="counter_price" placeholder="Counter price" required>
+                                                        <button type="submit" class="btn">Counter</button>
+                                                    </form>
+                                                </div>
+                                            {% elif offer.status == 'accepted' %}
+                                                <form method="POST" action="{{ url_for('complete_transaction', transaction_id=offer._id) }}">
+                                                    <button type="submit" class="btn btn-accent">Mark as Completed</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <footer>
+        <!-- Your existing footer content -->
+    </footer>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="seller-container">
+    <!-- Seller Navigation Partial -->
+    {% include "seller/_partials/navigation.html" %}
+
+    <div class="seller-content">
+        <div class="seller-header">
+            <h1>Seller Dashboard</h1>
+            <p>Welcome back, {{ profile.first_name }}!</p>
+        </div>
+
+        <div class="stats-cards">
+            <div class="stat-card">
+                <h3>Active Listings</h3>
+                <p>{{ stats.listings_count or 0 }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Items Sold</h3>
+                <p>{{ stats.sold_count or 0 }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Your Rating</h3>
+                <p>{{ stats.rating or "No ratings" }}</p>
+            </div>
+        </div>
+
+        <div class="dashboard-sections">
+            <section class="active-listings">
+                <h2>Recent Listings</h2>
+                {% if active_listings %}
+                    <div class="listing-grid">
+                        {% for listing in active_listings %}
+                            {% include "seller/_partials/listing_card.html" %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No active listings</p>
+                {% endif %}
+                <a href="{{ url_for('seller_listings') }}" class="btn">View All Listings</a>
+            </section>
+
+            <section class="pending-offers">
+                <h2>Recent Offers</h2>
+                {% if pending_offers %}
+                    <div class="offers-list">
+                        {% for offer in pending_offers %}
+                            {% include "seller/_partials/offer_card.html" %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No pending offers</p>
+                {% endif %}
+                <a href="{{ url_for('seller_offers') }}" class="btn">View All Offers</a>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

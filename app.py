@@ -6,6 +6,8 @@ from bson.objectid import ObjectId
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
+from flask_mail import Mail, Message
+import smtplib
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this to a secure secret key
@@ -22,6 +24,14 @@ saved_items_collection = db['saved_items']
 categories_collection = db['categories']
 neighborhoods_collection = db['neighborhoods']
 
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Replace with your email
+app.config['MAIL_PASSWORD'] = 'your-email-password'  # Replace with your email password or app password
+app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
+
+mail = Mail(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -346,45 +356,6 @@ def sell():
     neighborhoods = list(neighborhoods_collection.find())
     return render_template('sell.html', categories=categories, neighborhoods=neighborhoods)
 
-@app.route('/save_listing/<listing_id>', methods=['POST'])
-@login_required
-def save_listing(listing_id):
-    try:
-        # Check if already saved
-        existing = saved_items_collection.find_one({
-            'user_id': current_user.id,
-            'listing_id': listing_id
-        })
-        
-        if existing:
-            # Remove from saved items
-            saved_items_collection.delete_one({'_id': existing['_id']})
-            listings_collection.update_one(
-                {'_id': ObjectId(listing_id)},
-                {'$inc': {'saves': -1}}
-            )
-            status = 'unsaved'
-        else:
-            # Add to saved items
-            saved_items_collection.insert_one({
-                'user_id': current_user.id,
-                'listing_id': listing_id,
-                'saved_at': datetime.utcnow()
-            })
-            listings_collection.update_one(
-                {'_id': ObjectId(listing_id)},
-                {'$inc': {'saves': 1}}
-            )
-            status = 'saved'
-        
-        # Get updated saves count
-        listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
-        saves_count = listing.get('saves', 0) if listing else 0
-        
-        return jsonify({'status': status, 'saves': saves_count})
-    except:
-        return jsonify({'error': 'Failed to save listing'}), 400
-
 @app.route('/liked')
 @login_required
 def liked_items():
@@ -394,7 +365,6 @@ def liked_items():
     liked_listings = list(listings_collection.find({'_id': {'$in': listing_ids}}))
     
     return render_template('liked.html', listings=liked_listings)
-
 @app.route('/messages')
 @login_required
 def messages():
@@ -403,8 +373,23 @@ def messages():
         'participants': current_user.id
     }).sort('last_message', -1))
     
-    return render_template('messages.html', messages=user_messages)
-
+    # Get listings and transactions for each message
+    listings = {}
+    transactions = {}
+    for message in user_messages:
+        if 'listing_id' in message:
+            listing = listings_collection.find_one({'_id': ObjectId(message['listing_id'])})
+            if listing:
+                listings[str(message['_id'])] = listing
+        if 'transaction_id' in message:
+            transaction = transactions_collection.find_one({'_id': ObjectId(message['transaction_id'])})
+            if transaction:
+                transactions[str(message['_id'])] = transaction
+    
+    return render_template('messages.html',
+                         messages=user_messages,
+                         listings=listings,
+                         transactions=transactions)
 @app.route('/messages/<conversation_id>')
 @login_required
 def conversation(conversation_id):
@@ -498,53 +483,169 @@ def transactions():
     
     return render_template('transactions.html', transactions=user_transactions)
 
-@app.route('/create_transaction', methods=['POST'])
+@app.route('/howitworks')
+def how_it_works():
+    return render_template('howitworks.html')
+
+# Error handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('500.html'), 500
+
+@app.route('/save_listing/<listing_id>', methods=['POST'])
 @login_required
-def create_transaction():
+def save_listing(listing_id):
     try:
-        listing_id = request.form['listing_id']
-        seller_id = request.form['seller_id']
-        meeting_method = request.form['meeting_method']
-        meeting_location = request.form['meeting_location']
-        meeting_time = datetime.strptime(request.form['meeting_time'], '%Y-%m-%dT%H:%M')
+        # Check if already saved
+        existing = saved_items_collection.find_one({
+            'user_id': current_user.id,
+            'listing_id': listing_id
+        })
         
+        if existing:
+            # Remove from saved items
+            saved_items_collection.delete_one({'_id': existing['_id']})
+            listings_collection.update_one(
+                {'_id': ObjectId(listing_id)},
+                {'$inc': {'saves': -1}}
+            )
+            status = 'unsaved'
+        else:
+            # Add to saved items
+            saved_items_collection.insert_one({
+                'user_id': current_user.id,
+                'listing_id': listing_id,
+                'saved_at': datetime.utcnow()
+            })
+            listings_collection.update_one(
+                {'_id': ObjectId(listing_id)},
+                {'$inc': {'saves': 1}}
+            )
+            status = 'saved'
+        
+        # Get updated saves count
         listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
+        saves_count = listing.get('saves', 0) if listing else 0
         
-        if not listing:
-            flash('Listing not found.', 'danger')
+        return jsonify({'status': status, 'saves': saves_count})
+    except:
+        return jsonify({'error': 'Failed to save listing'}), 400
+
+@app.route('/handle_offer/<transaction_id>', methods=['POST'])
+@login_required
+def handle_offer(transaction_id):
+    try:
+        action = request.form['action']
+        transaction = transactions_collection.find_one({'_id': ObjectId(transaction_id)})
+        
+        if not transaction:
+            flash('Transaction not found.', 'danger')
             return redirect(url_for('transactions'))
         
-        new_transaction = {
-            'listing_id': listing_id,
-            'buyer_id': current_user.id,
-            'seller_id': seller_id,
-            'price': listing['price'],
-            'status': 'pending',
-            'meeting': {
-                'method': meeting_method,
-                'location': meeting_location,
-                'scheduled_time': meeting_time
-            },
-            'payment': {
-                'method': 'cash',
-                'processed': False
-            },
-            'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
-        }
+        if transaction['seller_id'] != current_user.id:
+            flash('You are not authorized to handle this offer.', 'danger')
+            return redirect(url_for('transactions'))
         
-        transactions_collection.insert_one(new_transaction)
+        listing = listings_collection.find_one({'_id': ObjectId(transaction['listing_id'])})
         
-        # Update listing status
-        listings_collection.update_one(
-            {'_id': ObjectId(listing_id)},
-            {'$set': {'status': 'pending'}}
-        )
-        
-        flash('Transaction created successfully!', 'success')
-        return redirect(url_for('transactions'))
+        if action == 'accept':
+            # Accept the offer
+            transactions_collection.update_one(
+                {'_id': ObjectId(transaction_id)},
+                {'$set': {
+                    'status': 'accepted',
+                    'updated_at': datetime.utcnow()
+                }}
+            )
+            
+            # Mark listing as sold
+            listings_collection.update_one(
+                {'_id': ObjectId(transaction['listing_id'])},
+                {'$set': {'status': 'sold'}}
+            )
+            
+            # Send message to buyer
+            messages_collection.update_one(
+                {'transaction_id': transaction_id},
+                {'$push': {
+                    'messages': {
+                        'sender_id': current_user.id,
+                        'content': f"I've accepted your offer of ${transaction['price']}! Let's arrange the pickup.",
+                        'sent_at': datetime.utcnow(),
+                        'read': False
+                    }
+                }}
+            )
+            
+            flash('Offer accepted! The item has been marked as sold.', 'success')
+            
+        elif action == 'decline':
+            # Decline the offer
+            transactions_collection.update_one(
+                {'_id': ObjectId(transaction_id)},
+                {'$set': {
+                    'status': 'declined',
+                    'updated_at': datetime.utcnow()
+                }}
+            )
+            
+            # Reopen listing if it was pending
+            if listing['status'] == 'pending':
+                listings_collection.update_one(
+                    {'_id': ObjectId(transaction['listing_id'])},
+                    {'$set': {'status': 'available'}}
+                )
+            
+            # Send message to buyer
+            messages_collection.update_one(
+                {'transaction_id': transaction_id},
+                {'$push': {
+                    'messages': {
+                        'sender_id': current_user.id,
+                        'content': "Thank you for your offer, but I've decided to decline it.",
+                        'sent_at': datetime.utcnow(),
+                        'read': False
+                    }
+                }}
+            )
+            
+            flash('Offer declined.', 'info')
+            
+        elif action == 'counter':
+            # Counter the offer
+            counter_price = float(request.form['counter_price'])
+            
+            transactions_collection.update_one(
+                {'_id': ObjectId(transaction_id)},
+                {'$set': {
+                    'status': 'countered',
+                    'counter_price': counter_price,
+                    'updated_at': datetime.utcnow()
+                }}
+            )
+            
+            # Send message to buyer
+            messages_collection.update_one(
+                {'transaction_id': transaction_id},
+                {'$push': {
+                    'messages': {
+                        'sender_id': current_user.id,
+                        'content': f"I've countered your offer with ${counter_price}. What do you think?",
+                        'sent_at': datetime.utcnow(),
+                        'read': False
+                    }
+                }}
+            )
+            
+            flash('Counter offer sent!', 'success')
+            
+        return redirect(url_for('messages'))
     except Exception as e:
-        flash(f'Error creating transaction: {str(e)}', 'danger')
+        flash(f'Error handling offer: {str(e)}', 'danger')
         return redirect(url_for('transactions'))
 
 @app.route('/complete_transaction/<transaction_id>', methods=['POST'])
@@ -563,6 +664,11 @@ def complete_transaction(transaction_id):
             flash('Transaction not found.', 'danger')
             return redirect(url_for('transactions'))
         
+        # Only seller can mark as completed
+        if transaction['seller_id'] != current_user.id:
+            flash('Only the seller can complete the transaction.', 'danger')
+            return redirect(url_for('transactions'))
+        
         # Update transaction
         transactions_collection.update_one(
             {'_id': ObjectId(transaction_id)},
@@ -576,7 +682,7 @@ def complete_transaction(transaction_id):
             }
         )
         
-        # Update listing status
+        # Update listing status if not already sold
         listings_collection.update_one(
             {'_id': ObjectId(transaction['listing_id'])},
             {'$set': {'status': 'sold'}}
@@ -588,24 +694,177 @@ def complete_transaction(transaction_id):
             {'$inc': {'stats.sold_count': 1}}
         )
         
+        # Send message to buyer
+        messages_collection.update_one(
+            {'transaction_id': transaction_id},
+            {'$push': {
+                'messages': {
+                    'sender_id': current_user.id,
+                    'content': "The transaction has been marked as completed. Thank you!",
+                    'sent_at': datetime.utcnow(),
+                    'read': False
+                }
+            }}
+        )
+        
         flash('Transaction marked as completed!', 'success')
         return redirect(url_for('transactions'))
     except Exception as e:
         flash(f'Error completing transaction: {str(e)}', 'danger')
         return redirect(url_for('transactions'))
+@app.route('/my_listings')
+@login_required
+def my_listings():
+    # Get user's listings
+    listings = list(listings_collection.find({'seller_id': current_user.id}).sort('created_at', -1))
+    
+    return render_template('my_listings.html', listings=listings)
 
-@app.route('/howitworks')
-def how_it_works():
-    return render_template('howitworks.html')
+@app.route('/edit_listing/<listing_id>', methods=['GET', 'POST'])
+@login_required
+def edit_listing(listing_id):
+    listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
+    
+    # Verify listing exists and belongs to current user
+    if not listing or listing['seller_id'] != current_user.id:
+        flash('Listing not found or you are not the owner', 'danger')
+        return redirect(url_for('my_listings'))
+    
+    if request.method == 'POST':
+        # Handle form submission
+        updates = {
+            'title': request.form['title'],
+            'description': request.form['description'],
+            'price': float(request.form['price']),
+            'category': request.form['category'],
+            'size': request.form['size'],
+            'condition': request.form['condition'],
+            'neighborhood': request.form['neighborhood'],
+            'updated_at': datetime.utcnow()
+        }
+        
+        # Handle image updates if needed
+        if 'images' in request.files:
+            files = request.files.getlist('images')
+            new_images = []
+            for file in files:
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                    filename = timestamp + filename
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(filepath)
+                    new_images.append(filename)
+            
+            if new_images:
+                updates['images'] = new_images
+        
+        listings_collection.update_one(
+            {'_id': ObjectId(listing_id)},
+            {'$set': updates}
+        )
+        
+        flash('Listing updated successfully!', 'success')
+        return redirect(url_for('listing_detail', listing_id=listing_id))
+    
+    # For GET request, show edit form
+    categories = list(categories_collection.find())
+    neighborhoods = list(neighborhoods_collection.find())
+    
+    return render_template('edit_listing.html', 
+                         listing=listing,
+                         categories=categories,
+                         neighborhoods=neighborhoods)
 
-# Error handlers
-@app.errorhandler(404)
-def not_found_error(error):
-    return render_template('404.html'), 404
+@app.route('/delete_listing/<listing_id>', methods=['POST'])
+@login_required
+def delete_listing(listing_id):
+    listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
+    
+    # Verify listing exists and belongs to current user
+    if not listing or listing['seller_id'] != current_user.id:
+        flash('Listing not found or you are not the owner', 'danger')
+        return redirect(url_for('my_listings'))
+    
+    # Delete listing
+    listings_collection.delete_one({'_id': ObjectId(listing_id)})
+    
+    # Also delete any saved items for this listing
+    saved_items_collection.delete_many({'listing_id': listing_id})
+    
+    flash('Listing deleted successfully', 'success')
+    return redirect(url_for('my_listings'))
+@app.route('/create_transaction', methods=['POST'])
+@login_required
+def create_transaction():
+    try:
+        # Get form data
+        listing_id = request.form['listing_id']
+        price = float(request.form['price'])
+        meeting_method = request.form['meeting_method']
+        meeting_location = request.form['meeting_location']
+        meeting_time = request.form['meeting_time']
 
-@app.errorhandler(500)
-def internal_error(error):
-    return render_template('500.html'), 500
+        # Get listing and user data
+        listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
+        seller = users_collection.find_one({'_id': ObjectId(listing['seller_id'])})
+        buyer = users_collection.find_one({'_id': ObjectId(current_user.id)})
 
+        # Validate data
+        if not all([listing, seller, buyer]):
+            flash('Invalid transaction data', 'error')
+            return redirect(url_for('listing_detail', listing_id=listing_id))
+
+        if not seller.get('email'):
+            flash('Seller contact information unavailable', 'error')
+            return redirect(url_for('listing_detail', listing_id=listing_id))
+
+        # Create transaction record
+        transaction_data = {
+            'listing_id': listing_id,
+            'buyer_id': current_user.id,
+            'seller_id': str(seller['_id']),
+            'price': price,
+            'original_price': listing['price'],
+            'status': 'pending',
+            'meeting': {
+                'method': meeting_method,
+                'location': meeting_location,
+                'time': meeting_time
+            },
+            'created_at': datetime.utcnow()
+        }
+
+        # Save to database
+        transaction_id = transactions_collection.insert_one(transaction_data).inserted_id
+
+        # Send email notification
+        try:
+            msg = Message(
+                subject=f"New Offer for Your {listing['title']}",
+                recipients=[seller['email']],
+                sender=app.config['MAIL_DEFAULT_SENDER'],
+                html=render_template(
+                    'email/new_offer.html',
+                    listing=listing,
+                    buyer=buyer,
+                    price=price,
+                    meeting_method=meeting_method,
+                    meeting_location=meeting_location,
+                    meeting_time=meeting_time
+                )
+            )
+            mail.send(msg)
+            flash('Offer submitted and seller notified!', 'success')
+        except Exception as e:
+            print(f"Email failed to send: {str(e)}")
+            flash('Offer submitted but could not notify seller by email', 'warning')
+
+        return redirect(url_for('messages'))
+
+    except Exception as e:
+        print(f"Transaction error: {str(e)}")
+        flash('Error creating offer', 'error')
+        return redirect(url_for('listing_detail', listing_id=listing_id))
 if __name__ == "__main__":
     app.run(debug=True, port=5002)

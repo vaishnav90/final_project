@@ -1,0 +1,33 @@
+<nav class="seller-nav">
+    <div class="seller-nav-brand">
+        <span>♻️</span>
+        <h2>Seller Center</h2>
+    </div>
+    <ul class="seller-nav-links">
+        <li class="{% if request.endpoint == 'seller_dashboard' %}active{% endif %}">
+            <a href="{{ url_for('seller_dashboard') }}">
+                <i class="icon-dashboard"></i> Dashboard
+            </a>
+        </li>
+        <li class="{% if request.endpoint == 'seller_listings' %}active{% endif %}">
+            <a href="{{ url_for('seller_listings') }}">
+                <i class="icon-listings"></i> My Listings
+            </a>
+        </li>
+        <li class="{% if request.endpoint == 'seller_offers' %}active{% endif %}">
+            <a href="{{ url_for('seller_offers') }}">
+                <i class="icon-offers"></i> Offers
+            </a>
+        </li>
+        <li>
+            <a href="{{ url_for('sell') }}">
+                <i class="icon-add"></i> Create Listing
+            </a>
+        </li>
+    </ul>
+    <div class="seller-nav-footer">
+        <a href="{{ url_for('home') }}" class="btn">
+            ← Back to Main Site
+        </a>
+    </div>
+</nav>

@@ -924,3 +924,69 @@ html, body {
     border-radius: 10px; /* Optional: Adds rounded corners */
     box-shadow: var(--shadow); /* Optional: Adds a shadow for better appearance */
 }
+/* Transaction status badges */
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.status-accepted {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.status-declined {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.status-countered {
+    background-color: #cce5ff;
+    color: #004085;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.status-completed {
+    background-color: #e2e3e5;
+    color: #383d41;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+/* Offer card styling */
+.offer-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-left: 4px solid var(--primary);
+}
+
+.offer-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.offer-actions input[type="number"] {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.transaction-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
