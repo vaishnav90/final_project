@@ -120,9 +120,9 @@
                         <div class="listing-card">
                             <div class="card-img">
                                 {% if listing.images and listing.images|length > 0 %}
-                                    <img src="{{ url_for('static', filename='uploads/' + listing.images[0]) }}" alt="{{ listing.title }}" class="card-img-photo">
+                                    <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" alt="{{ listing.title }}">
                                 {% else %}
-                                    <div class="card-img-placeholder">{{ listing.title }}</div>
+                                    <img src="{{ url_for('static', filename='default-image.png') }}" alt="No image">
                                 {% endif %}
                                 <div class="card-badge">{{ listing.status.title() }}</div>
                             </div>

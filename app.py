@@ -8,6 +8,9 @@ import os
 from werkzeug.utils import secure_filename
 from flask_mail import Mail, Message
 import smtplib
+from flask import send_file
+from io import BytesIO
+from bson import ObjectId
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this to a secure secret key
@@ -23,6 +26,7 @@ reviews_collection = db['reviews']
 saved_items_collection = db['saved_items']
 categories_collection = db['categories']
 neighborhoods_collection = db['neighborhoods']
+images_collection = db['images']
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -340,20 +344,20 @@ def listing_detail(listing_id):
 @login_required
 def sell():
     if request.method == 'POST':
-        images = []
+        image_ids = []
         if 'images' in request.files:
             files = request.files.getlist('images')
             for file in files:
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
-                    filename = timestamp + filename
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    print("Saving file to:", filepath)  # Debugging
-                    file.save(filepath)
-                    images.append(filename)
-        
-        print("Uploaded images:", images)  # Debugging
+                    image_doc = {
+                        'filename': secure_filename(file.filename),
+                        'content_type': file.content_type,
+                        'data': file.read(),
+                        'uploaded_by': current_user.id,
+                        'uploaded_at': datetime.utcnow()
+                    }
+                    result = images_collection.insert_one(image_doc)
+                    image_ids.append(str(result.inserted_id))
         
         new_listing = {
             'title': request.form['title'],
@@ -363,7 +367,7 @@ def sell():
             'size': request.form['size'],
             'condition': request.form['condition'],
             'neighborhood': request.form['neighborhood'],
-            'images': images,
+            'images': image_ids,  # Store image IDs from MongoDB
             'status': 'available',
             'seller_id': current_user.id,
             'created_at': datetime.utcnow(),
@@ -379,6 +383,15 @@ def sell():
     categories = list(categories_collection.find())
     neighborhoods = list(neighborhoods_collection.find())
     return render_template('sell.html', categories=categories, neighborhoods=neighborhoods)
+
+# Route to serve images from MongoDB
+@app.route('/image/<image_id>')
+def get_image(image_id):
+    image = images_collection.find_one({'_id': ObjectId(image_id)})
+    if image:
+        return send_file(BytesIO(image['data']), mimetype=image['content_type'])
+    else:
+        return "Image not found", 404
 
 @app.route('/liked')
 @login_required

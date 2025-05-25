@@ -228,15 +228,14 @@
         <div class="listing-content">
             <div class="gallery">
                 {% if listing.images and listing.images|length > 0 %}
-                    <img id="main-image" src="{{ url_for('static', filename='uploads/' + listing.images[0]) }}" 
-                         alt="{{ listing.title }}" class="main-image">
-                    
+                    <img id="main-image" src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                        alt="{{ listing.title }}" class="main-image">
                     <div class="thumbnail-container">
-                        {% for image in listing.images %}
-                            <img src="{{ url_for('static', filename='uploads/' + image) }}" 
-                                 alt="{{ listing.title }} - image {{ loop.index }}" 
-                                 class="thumbnail" 
-                                 onclick="document.getElementById('main-image').src = this.src">
+                        {% for image_id in listing.images %}
+                            <img src="{{ url_for('get_image', image_id=image_id) }}" 
+                                alt="{{ listing.title }} - image {{ loop.index }}" 
+                                class="thumbnail" 
+                                onclick="document.getElementById('main-image').src = this.src">
                         {% endfor %}
                     </div>
                 {% else %}

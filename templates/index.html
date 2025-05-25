@@ -103,8 +103,8 @@
         
         .card-img-photo {
             width: 100%;
-            height: 200px;
-            object-fit: cover;
+            height: auto;
+            display: block;
             border-radius: 8px 8px 0 0;
         }
         
@@ -275,9 +275,9 @@
                             <button class="like-btn" data-listing-id="{{ listing._id }}" data-liked="false" aria-label="Like Listing">❤️</button>
                         {% endif %}
                         {% if listing.images and listing.images|length > 0 %}
-                            <img src="{{ url_for('static', filename='uploads/' + listing.images[0]) }}" alt="{{ listing.title }}" class="card-img-photo">
+                            <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" alt="{{ listing.title }}" class="card-img-photo">
                         {% else %}
-                            <div class="card-img-placeholder">{{ listing.title }}</div>
+                            <img src="{{ url_for('static', filename='default-image.png') }}" alt="No image">
                         {% endif %}
                         <div class="card-badge">{{ listing.condition.title() }}</div>
                     </div>
@@ -328,9 +328,9 @@
                             <button class="like-btn" data-listing-id="{{ listing._id }}" data-liked="false" aria-label="Like Listing">❤️</button>
                         {% endif %}
                         {% if listing.images and listing.images|length > 0 %}
-                            <img src="{{ url_for('static', filename='uploads/' + listing.images[0]) }}" alt="{{ listing.title }}" class="card-img-photo">
+                            <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" alt="{{ listing.title }}">
                         {% else %}
-                            <div class="card-img-placeholder">{{ listing.title }}</div>
+                            <img src="{{ url_for('static', filename='default-image.png') }}" alt="No image">
                         {% endif %}
                         <div class="card-badge">{{ listing.condition.title() }}</div>
                     </div>

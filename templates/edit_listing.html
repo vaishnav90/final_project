@@ -196,12 +196,12 @@
                 <div class="form-group">
                     <label>Current Images</label>
                     <div class="current-images">
-                        {% for image in listing.images %}
+                        {% for image_id in listing.images %}
                             <div class="current-image">
-                                <img src="{{ url_for('static', filename='uploads/' + image) }}" 
+                                <img src="{{ url_for('get_image', image_id=image_id) }}" 
                                      alt="{{ listing.title }}">
                                 <button type="button" class="remove-image-btn" 
-                                        data-image="{{ image }}">&times;</button>
+                                        data-image="{{ image_id }}">&times;</button>
                             </div>
                         {% endfor %}
                     </div>
