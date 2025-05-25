@@ -343,7 +343,6 @@ def sell():
         images = []
         if 'images' in request.files:
             files = request.files.getlist('images')
-            print("Files received:", files)  # Debugging
             for file in files:
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
