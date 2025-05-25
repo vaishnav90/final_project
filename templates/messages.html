@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages | APP</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet">
     <style>
         .messages-container {
@@ -170,12 +171,13 @@
         
         {% if not conversations %}
             <div class="no-messages">
-                <p>You don't have any messages yet.</p>
-                <a href="{{ url_for('listings') }}" class="btn btn-accent">Browse Listings</a>
+                <p>📬 No messages yet</p>
+                <p>Start browsing listings and make offers to begin conversations!</p>
+                <a href="{{ url_for('home') }}" class="btn btn-accent">Browse Listings</a>
             </div>
         {% else %}
             {% for data in conversations %}
-                <div class="conversation-card" onclick="window.location='{{ url_for('conversation', conversation_id=data.conversation._id) }}'">
+                <div class="conversation-card" onclick="openConversation('{{ data.conversation._id }}')">
                     <div class="conversation-header">
                         <span class="conversation-user">{{ data.other_user.username }}</span>
                         <span class="conversation-time">
@@ -184,8 +186,10 @@
                     </div>
                     
                     <div class="last-message">
-                        {% if data.conversation.messages[-1].is_offer %}
-                            <strong>Offer:</strong> {{ data.conversation.messages[-1].content }}
+                        {% if data.conversation.messages[-1].get('is_offer') %}
+                            <strong>💰 Offer:</strong> {{ data.conversation.messages[-1].content }}
+                        {% elif data.conversation.messages[-1].get('is_system') %}
+                            <strong>🔔</strong> {{ data.conversation.messages[-1].content }}
                         {% else %}
                             {{ data.conversation.messages[-1].content|truncate(100) }}
                         {% endif %}
@@ -196,14 +200,19 @@
                             {% if data.listing.images and data.listing.images|length > 0 %}
                                 <img src="{{ url_for('static', filename='uploads/' + data.listing.images[0]) }}" alt="{{ data.listing.title }}">
                             {% else %}
-                                <div style="width: 80px; height: 80px; background: #eee; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                <div style="width: 80px; height: 80px; background: #eee; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 24px;">
                                     📷
                                 </div>
                             {% endif %}
                             <div class="listing-info">
                                 <div class="listing-title">{{ data.listing.title }}</div>
                                 <div class="listing-price">${{ "%.2f"|format(data.listing.price) }}</div>
-                                <div>Status: {{ data.listing.status.title() }}</div>
+                                <div>
+                                    <strong>Status:</strong> 
+                                    <span class="status-badge status-{{ data.listing.status }}">
+                                        {{ data.listing.status.title() }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     {% endif %}
@@ -211,57 +220,99 @@
                     <!-- Active Offers Section -->
                     {% if data.transactions %}
                         {% for transaction in data.transactions %}
-                            <div class="offer-section">
-                                <div class="offer-status">
-                                    <div>
-                                        <strong>Offer:</strong> 
-                                        <span class="offer-price">${{ "%.2f"|format(transaction.price) }}</span>
+                            <div class="offer-section status-{{ transaction.status }}">
+                                <div class="offer-details">
+                                    <div class="price-info">
+                                        <div>
+                                            <strong>Offer:</strong> 
+                                            <span class="offer-price">${{ "%.2f"|format(transaction.price) }}</span>
+                                        </div>
                                         {% if transaction.status == 'countered' and transaction.counter_price %}
-                                            <span class="offer-price">(Counter: ${{ "%.2f"|format(transaction.counter_price) }})</span>
+                                            <div>
+                                                <span class="original-price">${{ "%.2f"|format(transaction.price) }}</span>
+                                                <span class="offer-price">Counter: ${{ "%.2f"|format(transaction.counter_price) }}</span>
+                                            </div>
                                         {% endif %}
                                     </div>
                                     <span class="status-badge status-{{ transaction.status }}">
-                                        {{ transaction.status.title() }}
+                                        {% if transaction.status == 'pending' %}⏳ Pending
+                                        {% elif transaction.status == 'accepted' %}✅ Accepted
+                                        {% elif transaction.status == 'declined' %}❌ Declined
+                                        {% elif transaction.status == 'countered' %}💰 Countered
+                                        {% elif transaction.status == 'completed' %}🎉 Completed
+                                        {% endif %}
                                     </span>
                                 </div>
                                 
-                                <!-- Seller Actions -->
+                                <!-- Seller Actions for Pending Offers -->
                                 {% if transaction.status == 'pending' and transaction.seller_id == current_user.id %}
-                                    <div class="offer-actions">
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" onsubmit="event.stopPropagation()">
+                                    <div class="offer-actions" onclick="event.stopPropagation()">
+                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
+                                              onsubmit="return handleOfferSubmit(this, 'accept')" style="display: inline;">
                                             <input type="hidden" name="action" value="accept">
-                                            <button type="submit" class="btn btn-accent">Accept</button>
+                                            <button type="submit" class="btn btn-accent">
+                                                ✅ Accept
+                                            </button>
                                         </form>
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" onsubmit="event.stopPropagation()">
+                                        
+                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
+                                              onsubmit="return handleOfferSubmit(this, 'decline')" style="display: inline;">
                                             <input type="hidden" name="action" value="decline">
-                                            <button type="submit" class="btn btn-outline">Decline</button>
+                                            <button type="submit" class="btn btn-outline">
+                                                ❌ Decline
+                                            </button>
                                         </form>
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" onsubmit="event.stopPropagation()">
-                                            <input type="hidden" name="action" value="counter">
-                                            <input type="number" name="counter_price" class="counter-input" 
-                                                   value="{{ transaction.price }}" min="0.01" step="0.01" required>
-                                            <button type="submit" class="btn">Counter</button>
+                                        
+                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
+                                              onsubmit="return handleOfferSubmit(this, 'counter')" style="display: inline;">
+                                            <div class="counter-form">
+                                                <input type="hidden" name="action" value="counter">
+                                                <input type="number" name="counter_price" class="counter-input" 
+                                                       value="{{ transaction.price }}" min="0.01" step="0.01" required
+                                                       placeholder="Counter price">
+                                                <button type="submit" class="btn btn-counter">
+                                                    💰 Counter
+                                                </button>
+                                            </div>
                                         </form>
                                     </div>
                                 
                                 <!-- Buyer Actions for Countered Offers -->
                                 {% elif transaction.status == 'countered' and transaction.buyer_id == current_user.id %}
-                                    <div class="offer-actions">
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" onsubmit="event.stopPropagation()">
+                                    <div class="offer-actions" onclick="event.stopPropagation()">
+                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
+                                              onsubmit="return handleOfferSubmit(this, 'accept')" style="display: inline;">
                                             <input type="hidden" name="action" value="accept">
-                                            <button type="submit" class="btn btn-accent">Accept Counter</button>
+                                            <button type="submit" class="btn btn-accent">
+                                                ✅ Accept Counter (${{"%.2f"|format(transaction.counter_price)}})
+                                            </button>
                                         </form>
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" onsubmit="event.stopPropagation()">
+                                        
+                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
+                                              onsubmit="return handleOfferSubmit(this, 'decline')" style="display: inline;">
                                             <input type="hidden" name="action" value="decline">
-                                            <button type="submit" class="btn btn-outline">Decline</button>
+                                            <button type="submit" class="btn btn-outline">
+                                                ❌ Decline Counter
+                                            </button>
                                         </form>
                                     </div>
                                 
-                                <!-- Complete Transaction Button -->
+                                <!-- Complete Transaction Button for Accepted Offers -->
                                 {% elif transaction.status == 'accepted' and transaction.seller_id == current_user.id %}
-                                    <form method="POST" action="{{ url_for('complete_transaction', transaction_id=transaction._id) }}" onsubmit="event.stopPropagation()">
-                                        <button type="submit" class="btn btn-accent">Mark as Completed</button>
-                                    </form>
+                                    <div class="offer-actions" onclick="event.stopPropagation()">
+                                        <form method="POST" action="{{ url_for('complete_transaction', transaction_id=transaction._id) }}" 
+                                              onsubmit="return handleOfferSubmit(this, 'complete')">
+                                            <button type="submit" class="btn btn-accent">
+                                                🎉 Mark as Completed
+                                            </button>
+                                        </form>
+                                    </div>
+                                
+                                <!-- Show final price for completed transactions -->
+                                {% elif transaction.status == 'completed' %}
+                                    <div style="margin-top: 0.5rem; color: #28a745; font-weight: bold;">
+                                        🎉 Final Price: ${{ "%.2f"|format(transaction.get('final_price', transaction.get('counter_price', transaction.price))) }}
+                                    </div>
                                 {% endif %}
                             </div>
                         {% endfor %}

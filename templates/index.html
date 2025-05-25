@@ -1,9 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
+    <style>
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .nav-buttons {
+                display: flex;
+                gap: 16px;
+                align-items: center;
+            }
+            
+            .nav-buttons a {
+                text-decoration: none;
+                color: inherit;
+                font-size: 15px;
+                font-weight: 500;
+            }
+            
+            /* Completely remove button styling */
+            .nav-buttons .btn {
+                all: unset; /* This resets all button styles */
+                cursor: pointer;
+                white-space: nowrap;
+            }
+            
+        
+            
+            /* Mobile menu styling - clean and minimal */
+            .mobile-menu-links a {
+                display: block;
+                padding: 14px 20px;
+                text-decoration: none;
+                color: inherit;
+                font-size: 16px;
+                border-bottom: 1px solid rgba(0,0,0,0.05);
+                transition: background-color 0.2s;
+            }
+            
+            .mobile-menu-links a:hover {
+                background-color: rgba(0,0,0,0.03);
+            }
+            
+            /* Remove all button styling from mobile menu items */
+            .mobile-menu-links .btn {
+                all: unset;
+                display: block;
+                width: 100%;
+                padding: 14px 20px;
+                text-align: left;
+                cursor: pointer;
+                border-bottom: 1px solid rgba(0,0,0,0.05);
+            }
+            
+            /* Special styling only for logout */
+            .mobile-menu-links .btn-outline {
+                margin-top: 10px;
+                padding: 12px;
+                text-align: center;
+                border: 1px solid rgba(0,0,0,0.1);
+                border-radius: 6px;
+                background: transparent;
+                transition: all 0.2s;
+            }
+            
+            .mobile-menu-links .btn-outline:hover {
+                background: rgba(0,0,0,0.03);
+            }
+        }
+        
+        /* Rest of your styles remain unchanged */
+        .flash-messages {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .alert {
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            max-width: 400px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .card-img-photo {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .like-btn.liked {
+            color: #e74c3c;
+        }
+        
+        .like-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+    </style>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APP | San Ramon/Danville Secondhand Marketplace</title>
+    
     <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet" />
 </head>
 <body>
@@ -23,11 +144,15 @@
             </div>
             <div class="nav-buttons">
                 {% if current_user.is_authenticated %}
+                <a href="{{ url_for('sell') }}">
+                    <button class="btn" id="sell-btn">Sell Item</button>
+                </a>
                     <a href="{{ url_for('liked_items') }}">
                         <button class="btn">Saved</button>
                     </a>
-                    <a href="{{ url_for('sell') }}">
-                        <button class="btn" id="sell-btn">Sell Item</button>
+                    
+                    <a href="{{ url_for('messages') }}">
+                        <button class="btn">messages</button>
                     </a>
                     <a href="{{ url_for('logout') }}">
                         <button class="btn">Logout</button>
@@ -71,8 +196,11 @@
             <a href="{{ url_for('how_it_works') }}">How It Works</a>
             {% if current_user.is_authenticated %}
                 <a href="{{ url_for('messages') }}">Messages</a>
+                <a href="{{ url_for('liked_items') }}">
+                    <button class="btn">Saved</button>
+                </a>
                 <a href="{{ url_for('sell') }}">
-                    <button class="btn btn-accent" id="mobile-sell-btn">Sell Item</button>
+                    <button class="btn btn-accent">Sell Item</button>
                 </a>
             {% endif %}
         </div>
@@ -95,7 +223,7 @@
         </div>
     </section>
     
-    <section class="featured-section">
+   <!-- <section class="featured-section">
         <div class="main-container">
             <div class="featured-container animate-fade">
                 <div class="neighborhood-selector">
@@ -126,7 +254,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> -->
     
     <div class="main-container">
         <section>
@@ -195,6 +323,7 @@
                 {% for listing in high_end_listings %}
                 <div class="listing-card animate-fade">
                     <div class="card-img">
+                        
                         {% if current_user.is_authenticated %}
                             <button class="like-btn" data-listing-id="{{ listing._id }}" data-liked="false" aria-label="Like Listing">❤️</button>
                         {% endif %}

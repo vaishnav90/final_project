@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .content { margin: 20px 0; }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2a9d8f;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .message-content {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .listing-preview {
+            border: 1px solid #eee;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>You've Received a New Message</h2>
+        </div>
+        
+        <div class="content">
+            <p>Hello,</p>
+            <p>{{ sender.username }} has sent you a message about your listing:</p>
+            
+            <div class="listing-preview">
+                <h3>{{ listing.title }}</h3>
+                <p>Price: ${{ "%.2f"|format(listing.price) }}</p>
+            </div>
+            
+            <div class="message-content">
+                <p>{{ message.content }}</p>
+                <p><small>Sent at {{ message.sent_at.strftime('%b %d, %I:%M %p') }}</small></p>
+            </div>
+            
+            <p>Please log in to your account to respond to this message.</p>
+            
+            <a href="{{ url_for('conversation', conversation_id=conversation_id, _external=True) }}" class="button">
+                View Message
+            </a>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for using our platform!</p>
+        </div>
+    </div>
+</body>
+</html>
