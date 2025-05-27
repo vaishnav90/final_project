@@ -414,21 +414,19 @@ def messages():
         enhanced_conversations = []
         
         for conv in conversations:
-            # Get listing info
+
             listing = listings_collection.find_one({'_id': ObjectId(conv['listing_id'])})
-            
-            # Get other participant info
+
             other_user_id = next(p for p in conv['participants'] if p != current_user.id)
             other_user = users_collection.find_one({'_id': ObjectId(other_user_id)})
-            
-            # Get active transactions for this conversation (not declined)
+
             transactions = list(transactions_collection.find({
                 'listing_id': conv['listing_id'],
                 '$or': [
                     {'buyer_id': current_user.id},
                     {'seller_id': current_user.id}
                 ],
-                'status': {'$ne': 'declined'}  # Exclude declined offers
+                'status': {'$ne': 'declined'}  
             }).sort('created_at', -1))
 
             enhanced_conversations.append({
@@ -459,15 +457,11 @@ def conversation(conversation_id):
             flash('Conversation not found.', 'danger')
             return redirect(url_for('messages'))
         
-        # Get listing and other user info
+
         listing = listings_collection.find_one({'_id': ObjectId(conversation['listing_id'])})
         other_user_id = [p for p in conversation['participants'] if p != current_user.id][0]
         other_user = users_collection.find_one({'_id': ObjectId(other_user_id)})
-        
-     #   return render_template('conversation.html', 
-      #                       conversation=conversation,
-       #                      listing=listing,
-        #                     other_user=other_user)
+
         return render_template('messages.html')
     except:
         flash('Invalid conversation ID.', 'danger')
@@ -481,7 +475,7 @@ def send_message():
         recipient_id = request.form['recipient_id']
         content = request.form['content']
         
-        # Find existing conversation//
+
         conversation = messages_collection.find_one({
             'listing_id': listing_id,
             'participants': {'$all': [current_user.id, recipient_id]}
@@ -505,7 +499,7 @@ def send_message():
             )
             conversation_id = str(conversation['_id'])
         else:
-            # Create new conversation
+
             new_conversation = {
                 'listing_id': listing_id,
                 'participants': [current_user.id, recipient_id],
@@ -530,7 +524,7 @@ def send_message():
 @app.route('/transactions')
 @login_required
 def transactions():
-    # Get user's transactions
+
     user_transactions = list(transactions_collection.find({
         '$or': [
             {'buyer_id': current_user.id},
@@ -544,7 +538,7 @@ def transactions():
 def how_it_works():
     return render_template('howitworks.html')
 
-# Error handlers
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
@@ -557,14 +551,14 @@ def internal_error(error):
 @login_required
 def save_listing(listing_id):
     try:
-        # Check if already saved
+
         existing = saved_items_collection.find_one({
             'user_id': current_user.id,
             'listing_id': listing_id
         })
         
         if existing:
-            # Remove from saved items
+
             saved_items_collection.delete_one({'_id': existing['_id']})
             listings_collection.update_one(
                 {'_id': ObjectId(listing_id)},
@@ -572,7 +566,7 @@ def save_listing(listing_id):
             )
             status = 'unsaved'
         else:
-            # Add to saved items
+
             saved_items_collection.insert_one({
                 'user_id': current_user.id,
                 'listing_id': listing_id,
@@ -583,8 +577,7 @@ def save_listing(listing_id):
                 {'$inc': {'saves': 1}}
             )
             status = 'saved'
-        
-        # Get updated saves count
+
         listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
         saves_count = listing.get('saves', 0) if listing else 0
         
@@ -602,19 +595,17 @@ def handle_offer(transaction_id):
             flash('Transaction not found', 'danger')
             return redirect(url_for('messages'))
 
-        # Get listing and user info
         listing = listings_collection.find_one({'_id': ObjectId(transaction['listing_id'])})
         buyer = users_collection.find_one({'_id': ObjectId(transaction['buyer_id'])})
         seller = users_collection.find_one({'_id': ObjectId(transaction['seller_id'])})
 
-        # Find the conversation for this transaction
         conversation = messages_collection.find_one({
             'listing_id': transaction['listing_id'],
             'participants': {'$all': [transaction['buyer_id'], transaction['seller_id']]}
         })
 
         if action == 'accept':
-            # Check authorization
+
             if transaction['status'] == 'pending' and transaction['seller_id'] != current_user.id:
                 flash('You are not authorized to accept this offer', 'danger')
                 return redirect(url_for('messages'))
@@ -623,7 +614,6 @@ def handle_offer(transaction_id):
                 flash('You are not authorized to accept this counter offer', 'danger')
                 return redirect(url_for('messages'))
 
-            # Update transaction status
             final_price = transaction.get('counter_price', transaction['price'])
             transactions_collection.update_one(
                 {'_id': ObjectId(transaction_id)},
@@ -635,14 +625,12 @@ def handle_offer(transaction_id):
                     }
                 }
             )
-            
-            # Update listing status to pending
+
             listings_collection.update_one(
                 {'_id': ObjectId(transaction['listing_id'])},
                 {'$set': {'status': 'pending'}}
             )
-            
-            # Add system message to conversation
+
             if conversation:
                 system_message = {
                     'sender_id': current_user.id,
@@ -662,7 +650,7 @@ def handle_offer(transaction_id):
             flash('Offer accepted successfully!', 'success')
 
         elif action == 'decline':
-            # Check authorization
+
             if transaction['status'] == 'pending' and transaction['seller_id'] != current_user.id:
                 flash('You are not authorized to decline this offer', 'danger')
                 return redirect(url_for('messages'))
@@ -671,13 +659,11 @@ def handle_offer(transaction_id):
                 flash('You are not authorized to decline this counter offer', 'danger')
                 return redirect(url_for('messages'))
 
-            # Update transaction status
             transactions_collection.update_one(
                 {'_id': ObjectId(transaction_id)},
                 {'$set': {'status': 'declined', 'updated_at': datetime.utcnow()}}
             )
             
-            # Add system message to conversation
             if conversation:
                 system_message = {
                     'sender_id': current_user.id,
@@ -697,19 +683,17 @@ def handle_offer(transaction_id):
             flash('Offer declined', 'info')
 
         elif action == 'counter':
-            # Only seller can counter
+
             if transaction['seller_id'] != current_user.id:
                 flash('You are not authorized to counter this offer', 'danger')
                 return redirect(url_for('messages'))
 
             counter_price = float(request.form['counter_price'])
             
-            # Validate counter price
             if counter_price <= 0:
                 flash('Counter price must be greater than 0', 'danger')
                 return redirect(url_for('messages'))
-            
-            # Update transaction with counter offer
+     
             transactions_collection.update_one(
                 {'_id': ObjectId(transaction_id)},
                 {
@@ -721,7 +705,6 @@ def handle_offer(transaction_id):
                 }
             )
             
-            # Add system message to conversation
             if conversation:
                 system_message = {
                     'sender_id': current_user.id,
@@ -760,12 +743,10 @@ def complete_transaction(transaction_id):
             flash('Transaction not found or not in accepted status.', 'danger')
             return redirect(url_for('messages'))
         
-        # Only seller can mark as completed
         if transaction['seller_id'] != current_user.id:
             flash('Only the seller can complete the transaction.', 'danger')
             return redirect(url_for('messages'))
         
-        # Update transaction status
         final_price = transaction.get('final_price', transaction.get('counter_price', transaction['price']))
         transactions_collection.update_one(
             {'_id': ObjectId(transaction_id)},
@@ -779,19 +760,16 @@ def complete_transaction(transaction_id):
             }
         )
         
-        # Update listing status to sold
         listings_collection.update_one(
             {'_id': ObjectId(transaction['listing_id'])},
             {'$set': {'status': 'sold'}}
         )
         
-        # Update seller's statistics
         users_collection.update_one(
             {'_id': ObjectId(transaction['seller_id'])},
             {'$inc': {'stats.sold_count': 1}}
         )
         
-        # Add completion message to conversation
         conversation = messages_collection.find_one({
             'listing_id': transaction['listing_id'],
             'participants': {'$all': [transaction['buyer_id'], transaction['seller_id']]}
@@ -824,21 +802,21 @@ def complete_transaction(transaction_id):
 @app.route('/my_listings')
 @login_required
 def my_listings():
-    # Get user's listings
+
     listings = list(listings_collection.find({'seller_id': current_user.id}).sort('created_at', -1))
     
-    # Get offers for each listing
+    
     offers_by_listing = {}
     for listing in listings:
         listing_id = str(listing['_id'])
         
-        # Get all transactions/offers for this listing
+
         offers = list(transactions_collection.find({
             'listing_id': listing_id,
             'seller_id': current_user.id
         }).sort('created_at', -1))
         
-        # Enhance offers with buyer information
+
         enhanced_offers = []
         for offer in offers:
             buyer = users_collection.find_one({'_id': ObjectId(offer['buyer_id'])})
@@ -855,13 +833,12 @@ def my_listings():
 def edit_listing(listing_id):
     listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
     
-    # Verify listing exists and belongs to current user
     if not listing or listing['seller_id'] != current_user.id:
         flash('Listing not found or you are not the owner', 'danger')
         return redirect(url_for('my_listings'))
     
     if request.method == 'POST':
-        # Handle form submission
+
         updates = {
             'title': request.form['title'],
             'description': request.form['description'],
@@ -873,7 +850,7 @@ def edit_listing(listing_id):
             'updated_at': datetime.utcnow()
         }
         
-        # Handle image updates if needed
+
         if 'images' in request.files:
             files = request.files.getlist('images')
             new_images = []
@@ -897,7 +874,7 @@ def edit_listing(listing_id):
         flash('Listing updated successfully!', 'success')
         return redirect(url_for('listing_detail', listing_id=listing_id))
     
-    # For GET request, show edit form
+
     categories = list(categories_collection.find())
     neighborhoods = list(neighborhoods_collection.find())
     
@@ -911,15 +888,13 @@ def edit_listing(listing_id):
 def delete_listing(listing_id):
     listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
     
-    # Verify listing exists and belongs to current user
+
     if not listing or listing['seller_id'] != current_user.id:
         flash('Listing not found or you are not the owner', 'danger')
         return redirect(url_for('my_listings'))
     
-    # Delete listing
     listings_collection.delete_one({'_id': ObjectId(listing_id)})
     
-    # Also delete any saved items for this listing
     saved_items_collection.delete_many({'listing_id': listing_id})
     
     flash('Listing deleted successfully', 'success')
@@ -928,17 +903,16 @@ def delete_listing(listing_id):
 @login_required
 def create_transaction():
     try:
-        # Get form data
+
         listing_id = request.form['listing_id']
         seller_id = request.form['seller_id']
         price = float(request.form['price'])
         
-        # Validate that user is not trying to make offer on their own listing
+
         if seller_id == current_user.id:
             flash("You cannot make an offer on your own listing", 'danger')
             return redirect(url_for('listing_detail', listing_id=listing_id))
         
-        # Check if there's already a pending offer from this buyer
         existing_offer = transactions_collection.find_one({
             'listing_id': listing_id,
             'buyer_id': current_user.id,
@@ -949,13 +923,11 @@ def create_transaction():
             flash("You already have a pending offer for this item", 'warning')
             return redirect(url_for('listing_detail', listing_id=listing_id))
         
-        # Get listing info for validation
         listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
         if not listing or listing['status'] != 'available':
             flash("This item is no longer available", 'danger')
             return redirect(url_for('home'))
         
-        # Create transaction record
         new_transaction = {
             'listing_id': listing_id,
             'buyer_id': current_user.id,
@@ -966,17 +938,14 @@ def create_transaction():
             'updated_at': datetime.utcnow()
         }
         
-        # Save transaction
         result = transactions_collection.insert_one(new_transaction)
         transaction_id = str(result.inserted_id)
         
-        # Find or create conversation
         conversation = messages_collection.find_one({
             'listing_id': listing_id,
             'participants': {'$all': [current_user.id, seller_id]}
         })
         
-        # Get current user info for the message
         buyer = users_collection.find_one({'_id': ObjectId(current_user.id)})
         
         new_message = {
@@ -989,7 +958,7 @@ def create_transaction():
         }
         
         if conversation:
-            # Update existing conversation
+
             messages_collection.update_one(
                 {'_id': conversation['_id']},
                 {
@@ -998,7 +967,7 @@ def create_transaction():
                 }
             )
         else:
-            # Create new conversation
+  
             new_conversation = {
                 'listing_id': listing_id,
                 'participants': [current_user.id, seller_id],
@@ -1021,12 +990,10 @@ def update_listing(listing_id):
     """Handle quick status updates for listings"""
     listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
     
-    # Verify listing exists and belongs to current user
     if not listing or listing['seller_id'] != current_user.id:
         flash('Listing not found or you are not the owner', 'danger')
         return redirect(url_for('my_listings'))
     
-    # Handle status updates or other quick changes
     if 'status' in request.form:
         new_status = request.form['status']
         if new_status in ['available', 'sold', 'pending']:
@@ -1040,8 +1007,6 @@ def update_listing(listing_id):
     
     return redirect(url_for('my_listings'))
 
-# Alternative fix: If you want to redirect to edit_listing instead
-# Replace url_for('update_listing', listing_id=listing._id) in your template with:
-# url_for('edit_listing', listing_id=listing._id)
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

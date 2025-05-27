@@ -441,12 +441,10 @@
             const maxFiles = 5;
             const maxFileSize = 5 * 1024 * 1024; // 5MB
 
-            // File upload area click handler
             fileUploadArea.addEventListener('click', function() {
                 fileInput.click();
             });
 
-            // Drag and drop handlers
             fileUploadArea.addEventListener('dragover', function(e) {
                 e.preventDefault();
                 this.classList.add('dragover');
@@ -537,12 +535,11 @@
                     return;
                 }
 
-                // Disable submit button to prevent double submission
+
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Creating Listing...';
             });
 
-            // Real-time character counting for title and description
             const titleInput = document.getElementById('title');
             const descriptionInput = document.getElementById('description');
 
