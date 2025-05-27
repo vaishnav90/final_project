@@ -396,9 +396,11 @@ def get_image(image_id):
 @app.route('/liked')
 @login_required
 def liked_items():
+    # Get user's saved items
     saved_items = list(saved_items_collection.find({'user_id': current_user.id}))
     listing_ids = [ObjectId(item['listing_id']) for item in saved_items]
     liked_listings = list(listings_collection.find({'_id': {'$in': listing_ids}}))
+    
     return render_template('liked.html', listings=liked_listings)
 @app.route('/messages')
 @login_required
@@ -825,8 +827,29 @@ def my_listings():
     # Get user's listings
     listings = list(listings_collection.find({'seller_id': current_user.id}).sort('created_at', -1))
     
-    return render_template('my_listings.html', listings=listings)
-
+    # Get offers for each listing
+    offers_by_listing = {}
+    for listing in listings:
+        listing_id = str(listing['_id'])
+        
+        # Get all transactions/offers for this listing
+        offers = list(transactions_collection.find({
+            'listing_id': listing_id,
+            'seller_id': current_user.id
+        }).sort('created_at', -1))
+        
+        # Enhance offers with buyer information
+        enhanced_offers = []
+        for offer in offers:
+            buyer = users_collection.find_one({'_id': ObjectId(offer['buyer_id'])})
+            offer['buyer_info'] = buyer
+            enhanced_offers.append(offer)
+        
+        offers_by_listing[listing_id] = enhanced_offers
+    
+    return render_template('my_listings.html', 
+                         listings=listings,
+                         offers_by_listing=offers_by_listing)
 @app.route('/edit_listing/<listing_id>', methods=['GET', 'POST'])
 @login_required
 def edit_listing(listing_id):
@@ -900,7 +923,7 @@ def delete_listing(listing_id):
     saved_items_collection.delete_many({'listing_id': listing_id})
     
     flash('Listing deleted successfully', 'success')
-    return redirect(url_for('my_listings'))
+    return redirect(url_for('home'))
 @app.route('/create_transaction', methods=['POST'])
 @login_required
 def create_transaction():
@@ -992,5 +1015,33 @@ def create_transaction():
         print(f"Error creating transaction: {str(e)}")
         flash('Error creating offer. Please try again.', 'danger')
         return redirect(url_for('listing_detail', listing_id=listing_id))
+@app.route('/update_listing/<listing_id>', methods=['POST'])
+@login_required
+def update_listing(listing_id):
+    """Handle quick status updates for listings"""
+    listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
+    
+    # Verify listing exists and belongs to current user
+    if not listing or listing['seller_id'] != current_user.id:
+        flash('Listing not found or you are not the owner', 'danger')
+        return redirect(url_for('my_listings'))
+    
+    # Handle status updates or other quick changes
+    if 'status' in request.form:
+        new_status = request.form['status']
+        if new_status in ['available', 'sold', 'pending']:
+            listings_collection.update_one(
+                {'_id': ObjectId(listing_id)},
+                {'$set': {'status': new_status, 'updated_at': datetime.utcnow()}}
+            )
+            flash(f'Listing status updated to {new_status}', 'success')
+        else:
+            flash('Invalid status', 'danger')
+    
+    return redirect(url_for('my_listings'))
+
+# Alternative fix: If you want to redirect to edit_listing instead
+# Replace url_for('update_listing', listing_id=listing._id) in your template with:
+# url_for('edit_listing', listing_id=listing._id)
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

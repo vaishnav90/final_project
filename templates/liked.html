@@ -6,17 +6,53 @@
     <title>Liked Items | APP</title>
     <link href="static/assets/css/styles.css" rel="stylesheet" />
 </head>
+
+<style>
+    .card-img-photo {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px 8px 0 0;
+        display: block;
+    }
+</style>
+
 <body>
     <header>
         <nav>
             <div class="logo">
-                <span class="logo-icon">♻️</span> 
-                OurAPP
+                <span class="logo-icon">🌱</span> 
+                Hathor
             </div>
             <div class="nav-links">
-                <a href="/index">Home</a>
-                <a href="/liked">Liked Items</a>
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('listings') }}">Browse</a>
+                <a href="{{ url_for('how_it_works') }}">How It Works</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('messages') }}">Messages</a>
+                {% endif %}
             </div>
+            <div class="nav-buttons">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('sell') }}">
+                    <button class="btn" id="sell-btn">Sell Item</button>
+                </a>
+                    <a href="{{ url_for('liked_items') }}">
+                        <button class="btn">Saved</button>
+                    </a>
+                    <a href="{{ url_for('logout') }}">
+                        <button class="btn">Logout</button>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('signup') }}">
+                        <button class="btn">Sign Up</button>
+                    </a>
+                    <a href="{{ url_for('login') }}">
+                        <button class="btn">Login</button>
+                    </a>
+                {% endif %}
+            </div>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
         </nav>
     </header>
 
@@ -69,9 +105,9 @@
         <div class="footer-section">
         <h3>Contact Us</h3>
         <ul class="footer-links">
-        <li><a href="mailto:info@APP.com">info@APP.com</a></li>
-        <li><a href="tel:9255551234">(925) 555-1234</a></li>
-        <li style="color: rgba(255, 255, 255, 0.7);">San Ramon & Danville, CA</li>
+            <li><a href="mailto:vaishnavanand90@gmail.com">vaishnavanand90@gmail.com</a></li>
+            <li><a href="mailto:asherburdeny@gmail.com">asherburdeny@gmail.com</a></li>
+            <li style="color: rgba(255, 255, 255, 0.7);">San Ramon & Danville, CA</li>
         </ul>
         </div>
         </div>
@@ -86,49 +122,63 @@
         </div>
 </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-    const likedItemsGrid = document.getElementById('liked-items-grid');
-    let likedItems = JSON.parse(localStorage.getItem('likedItems')) || [];
-
-    // Populate the liked items grid
-    function renderLikedItems() {
-        likedItemsGrid.innerHTML = ''; // Clear the grid
-        if (likedItems.length === 0) {
-            likedItemsGrid.innerHTML = '<p>No liked items yet.</p>';
-            return;
-        }
-
-        likedItems.forEach(item => {
-            const listingCard = document.createElement('div');
-            listingCard.classList.add('listing-card', 'animate-fade');
-            listingCard.innerHTML = `
-                <div class="card-img">
-                    <div class="card-badge">${item.condition}</div>
-                </div>
-                <div class="card-content">
-                    <h3 class="card-title">${item.title}</h3>
-                    <p class="card-price">${item.price}</p>
-                    <p class="card-location">
-                        <span class="material-icons">📍</span> 
-                        <span class="neighborhood-tag">${item.location}</span>
-                    </p>
-                    <button class="btn unlike-btn">Unlike</button>
-                </div>
-            `;
-            likedItemsGrid.appendChild(listingCard);
-
-            // Add event listener to the "Unlike" button
-            listingCard.querySelector('.unlike-btn').addEventListener('click', function () {
-                likedItems = likedItems.filter(likedItem => likedItem.title !== item.title);
-                localStorage.setItem('likedItems', JSON.stringify(likedItems));
-                renderLikedItems(); // Re-render the liked items
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const likedItemsGrid = document.getElementById('liked-items-grid');
+        let likedItems = JSON.parse(localStorage.getItem('likedItems')) || [];
+    
+        function renderLikedItems() {
+            likedItemsGrid.innerHTML = '';
+            if (likedItems.length === 0) {
+                likedItemsGrid.innerHTML = '<p>No liked items yet.</p>';
+                return;
+            }
+    
+            likedItems.forEach(item => {
+                const listingCard = document.createElement('div');
+                listingCard.classList.add('listing-card', 'animate-fade');
+                let imageHtml = '';
+                if (item.images && item.images.length > 0 && item.images[0]) {
+                    imageHtml = `<img src="/image/${item.images[0]}" alt="${item.title}" class="card-img-photo">`;
+                } else {
+                    imageHtml = `<img src="/static/default-image.png" alt="No image" class="card-img-photo">`;
+                }
+                listingCard.innerHTML = `
+                    <div class="card-img">
+                        <button class="like-btn liked" data-listing-id="${item._id}" aria-label="Unlike Listing">❤️</button>
+                        ${imageHtml}
+                        <div class="card-badge">${item.condition || ''}</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">${item.title}</h3>
+                        <p class="card-price">${item.price ? '$' + item.price : ''}</p>
+                        <p class="card-location">
+                            <span class="material-icons">📍</span> 
+                            <span class="neighborhood-tag">${item.neighborhood || ''}</span>
+                        </p>
+                        <div class="card-meta">
+                            <span>Size: ${item.size || ''}</span>
+                        </div>
+                        <div class="card-actions">
+                            <a href="/listings/${item._id}">
+                                <button class="btn message-btn">View Details</button>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                likedItemsGrid.appendChild(listingCard);
+    
+                // Unlike functionality
+                listingCard.querySelector('.like-btn').addEventListener('click', function () {
+                    likedItems = likedItems.filter(liked => liked._id !== item._id);
+                    localStorage.setItem('likedItems', JSON.stringify(likedItems));
+                    renderLikedItems();
+                });
             });
-        });
-    }
-
-    renderLikedItems();
-});
+        }
+    
+        renderLikedItems();
+    });
     </script>
 </body>
 </html>

@@ -11,30 +11,41 @@
     <header>
         <nav>
             <div class="logo">
-                <span class="logo-icon">♻️</span> 
-                OurAPP
+                <span class="logo-icon">🌱</span> 
+                Hathor
             </div>
             <div class="nav-links">
-                <a href="/index">Home</a>
-                <a href="#">Browse</a>
-                <a href="/howitworks">How It Works</a>
-                <a href="#">Messages</a>
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('listings') }}">Browse</a>
+                <a href="{{ url_for('how_it_works') }}">How It Works</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('messages') }}">Messages</a>
+                {% endif %}
             </div>
             <div class="nav-buttons">
-                <a href="/liked">
-                    <button class="btn">Saved</button>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('sell') }}">
+                    <button class="btn" id="sell-btn">Sell Item</button>
                 </a>
-                <button class="btn" id="sell-btn">Sell Item</button>
-                <a href="/signup">
-                    <button class="btn">Sign Up</button>
-                </a>
-                <a href="/login">
-                    <button class="btn">Login</button>
-                </a>
+                    <a href="{{ url_for('liked_items') }}">
+                        <button class="btn">Saved</button>
+                    </a>
+                    <a href="{{ url_for('logout') }}">
+                        <button class="btn">Logout</button>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('signup') }}">
+                        <button class="btn">Sign Up</button>
+                    </a>
+                    <a href="{{ url_for('login') }}">
+                        <button class="btn">Login</button>
+                    </a>
+                {% endif %}
             </div>
             <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
         </nav>
     </header>
+
     <div class="auth-container-login">
         <div class="auth-form-login">
             <h1>Welcome Back</h1>

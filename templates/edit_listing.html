@@ -89,6 +89,36 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        
+        /* Delete button styling */
+        .delete-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #f8d7da;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .submit-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
     </style>
 </head>
 <body>
@@ -236,13 +266,30 @@
                 </div>
             </div>
             
-            <!-- Submit -->
+            <!-- Submit and Delete Buttons -->
             <div class="submit-section">
-                <button type="submit" class="btn btn-accent">Save Changes</button>
-                <a href="{{ url_for('my_listings') }}" class="btn btn-outline">Cancel</a>
+                <div>
+                    <button type="submit" class="btn btn-accent">Save Changes</button>
+                    <a href="{{ url_for('my_listings') }}" class="btn btn-outline">Cancel</a>
+                </div>
+                <button type="button" class="btn-danger" id="delete-btn">Delete Listing</button>
             </div>
         </form>
     </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 500px; width: 90%;">
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this listing? This action cannot be undone.</p>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <form method="POST" action="{{ url_for('delete_listing', listing_id=listing._id) }}" style="display: inline;">
+                    <button type="submit" class="btn-danger">Yes, Delete</button>
+                </form>
+                <button type="button" id="cancel-delete" class="btn btn-outline">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Image upload and removal functionality
@@ -251,6 +298,9 @@
             const fileUploadArea = document.getElementById('file-upload-area');
             const imagePreview = document.getElementById('image-preview');
             const form = document.querySelector('.edit-form');
+            const deleteBtn = document.getElementById('delete-btn');
+            const deleteModal = document.getElementById('delete-modal');
+            const cancelDelete = document.getElementById('cancel-delete');
             
             let selectedFiles = [];
             const maxFiles = 5;
@@ -278,6 +328,22 @@
                     form.appendChild(input);
                     this.parentElement.remove();
                 });
+            });
+
+            // Delete listing confirmation
+            deleteBtn.addEventListener('click', function() {
+                deleteModal.style.display = 'flex';
+            });
+
+            cancelDelete.addEventListener('click', function() {
+                deleteModal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === deleteModal) {
+                    deleteModal.style.display = 'none';
+                }
             });
 
             function handleFiles(files) {

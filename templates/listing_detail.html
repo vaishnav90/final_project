@@ -184,8 +184,8 @@
     <header>
         <nav>
             <div class="logo">
-                <span class="logo-icon">♻️</span> 
-                <a href="{{ url_for('home') }}" style="text-decoration: none; color: inherit;">OurAPP</a>
+                <span class="logo-icon">🌱</span> 
+                Hathor
             </div>
             <div class="nav-links">
                 <a href="{{ url_for('home') }}">Home</a>
@@ -193,16 +193,15 @@
                 <a href="{{ url_for('how_it_works') }}">How It Works</a>
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('messages') }}">Messages</a>
-                    <a href="{{ url_for('my_listings') }}">My Listings</a>
                 {% endif %}
             </div>
             <div class="nav-buttons">
                 {% if current_user.is_authenticated %}
+                <a href="{{ url_for('sell') }}">
+                    <button class="btn" id="sell-btn">Sell Item</button>
+                </a>
                     <a href="{{ url_for('liked_items') }}">
                         <button class="btn">Saved</button>
-                    </a>
-                    <a href="{{ url_for('sell') }}">
-                        <button class="btn btn-accent">Sell Item</button>
                     </a>
                     <a href="{{ url_for('logout') }}">
                         <button class="btn">Logout</button>
@@ -216,6 +215,7 @@
                     </a>
                 {% endif %}
             </div>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
         </nav>
     </header>
 

@@ -131,8 +131,8 @@
     <header>
         <nav>
             <div class="logo">
-                <span class="logo-icon">♻️</span> 
-                OurAPP
+                <span class="logo-icon">🌱</span> 
+                Hathor
             </div>
             <div class="nav-links">
                 <a href="{{ url_for('home') }}">Home</a>
@@ -181,8 +181,8 @@
     <div class="mobile-menu" id="mobile-menu">
         <div class="mobile-menu-header">
             <div class="logo">
-                <span class="logo-icon">♻️</span> 
-                OurAPP
+                <span class="logo-icon">🌱</span> 
+                Hathor 
             </div>
             <button class="close-modal" id="close-mobile-menu">&times;</button>
         </div>
@@ -265,7 +265,7 @@
             
             <div class="listings-grid">
                 {% for listing in recent_listings %}
-                <div class="listing-card animate-fade">
+                <div class="listing-card animate-fade" data-listing-id="{{ listing._id }}">
                     <div class="card-img">
                         {% if current_user.is_authenticated %}
                             <button class="like-btn" data-listing-id="{{ listing._id }}" data-liked="false" aria-label="Like Listing">❤️</button>
@@ -321,7 +321,9 @@
                     <div class="card-img">
                         
                         {% if current_user.is_authenticated %}
-                            <button class="like-btn" data-listing-id="{{ listing._id }}" data-liked="false" aria-label="Like Listing">❤️</button>
+                        <button class="like-btn{% if listing._id in liked_listing_ids %} liked{% endif %}" 
+                            data-listing-id="{{ listing._id }}" 
+                            aria-label="Like Listing">❤️</button>
                         {% endif %}
                         {% if listing.images and listing.images|length > 0 %}
                             <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" alt="{{ listing.title }}">
@@ -494,8 +496,8 @@
             <div class="footer-section">
                 <h3>Contact Us</h3>
                 <ul class="footer-links">
-                    <li><a href="mailto:info@APP.com">info@APP.com</a></li>
-                    <li><a href="tel:9255551234">(925) 555-1234</a></li>
+                    <li><a href="mailto:vaishnavanand90@gmail.com">vaishnavanand90@gmail.com</a></li>
+                    <li><a href="mailto:asherburdeny@gmail.com">asherburdeny@gmail.com</a></li>
                     <li style="color: rgba(255, 255, 255, 0.7);">San Ramon & Danville, CA</li>
                 </ul>
             </div>
@@ -549,19 +551,40 @@
 
     // Like functionality
     const isAuthenticated = "{{ 'true' if current_user.is_authenticated else 'false' }}";
-    if (isAuthenticated) {
+    if (isAuthenticated === "true") {
         const likeButtons = document.querySelectorAll('.like-btn');
         likeButtons.forEach(function(button) {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
-                const listingId = this.getAttribute('data-listing-id');
-                
-                fetch('/save_listing/' + listingId, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
+                const card = button.closest('.listing-card');
+                const listingId = card.getAttribute('data-listing-id'); // <-- Get the real MongoDB ID!
+                const title = card.querySelector('.card-title').textContent;
+                const price = card.querySelector('.card-price').textContent.replace('$', '');
+                const image = card.querySelector('img.card-img-photo');
+                let imageId = null;
+                if (image && image.src.includes('/image/')) {
+                    imageId = image.src.split('/image/')[1];
+                }
+                const location = card.querySelector('.neighborhood-tag').textContent;
+                const condition = card.querySelector('.card-badge').textContent;
+                const size = card.querySelector('.card-meta span') ? card.querySelector('.card-meta span').textContent.replace('Size: ', '') : '';
+
+                let likedItems = JSON.parse(localStorage.getItem('likedItems')) || [];
+                // Prevent duplicates by _id
+                if (!likedItems.some(item => item._id === listingId)) {
+                    likedItems.push({
+                        _id: listingId, // <-- Save the real MongoDB ID!
+                        title: title,
+                        price: price,
+                        images: imageId ? [imageId] : [],
+                        location: location,
+                        condition: condition,
+                        size: size
+                    });
+                    localStorage.setItem('likedItems', JSON.stringify(likedItems));
+                }
+                // Toggle liked class visually
+                button.classList.toggle('liked');
             });
         });
     }
