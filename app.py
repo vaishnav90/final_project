@@ -396,11 +396,9 @@ def get_image(image_id):
 @app.route('/liked')
 @login_required
 def liked_items():
-    # Get user's saved items
     saved_items = list(saved_items_collection.find({'user_id': current_user.id}))
     listing_ids = [ObjectId(item['listing_id']) for item in saved_items]
     liked_listings = list(listings_collection.find({'_id': {'$in': listing_ids}}))
-    
     return render_template('liked.html', listings=liked_listings)
 @app.route('/messages')
 @login_required
@@ -820,7 +818,6 @@ def complete_transaction(transaction_id):
         print(f"Error completing transaction: {str(e)}")
         flash('Error completing transaction. Please try again.', 'danger')
         return redirect(url_for('messages'))
-
 
 @app.route('/my_listings')
 @login_required
