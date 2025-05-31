@@ -139,7 +139,6 @@ def home():
                          recent_listings=recent_listings,
                          high_end_listings=high_end_listings,
                          popular_categories=popular_categories)
-
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
