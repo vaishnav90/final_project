@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | APP</title>
+    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-right: 2rem;
+        }
+        
+        .profile-info h1 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+        }
+        
+        .profile-info p {
+            color: var(--text-light);
+        }
+        
+        .profile-section {
+            margin-bottom: 2rem;
+        }
+        
+        .profile-section h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+            font-size: 1.25rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus, 
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .stat-card {
+            background: var(--primary-light);
+            padding: 1rem;
+            border-radius: var(--radius);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+        
+        .password-toggle {
+            position: relative;
+        }
+        
+        .password-toggle i {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        
+        .danger-zone {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #f8d7da;
+        }
+        
+        .danger-zone h2 {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <span class="logo-icon">🌱</span> 
+                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
+              </div>
+            <div class="nav-links">
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('listings') }}">Browse</a>
+                <a href="{{ url_for('how_it_works') }}">How It Works</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('messages') }}">Messages</a>
+                {% endif %}
+            </div>
+            <div class="nav-buttons">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('sell') }}">
+                    <button class="btn" id="sell-btn">Sell Item</button>
+                </a>
+                    <a href="{{ url_for('liked_items') }}">
+                        <button class="btn">Saved</button>
+                    </a>
+                    <a href="{{ url_for('logout') }}">
+                        <button class="btn">Logout</button>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('signup') }}">
+                        <button class="btn">Sign Up</button>
+                    </a>
+                    <a href="{{ url_for('login') }}">
+                        <button class="btn">Login</button>
+                    </a>
+                {% endif %}
+            </div>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
+        </nav>
+    </header>
+
+    <main class="profile-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="profile-header">
+            <div class="avatar">
+                {{ user.username[0].upper() }}
+            </div>
+            <div class="profile-info">
+                <h1>{{ user.username }}</h1>
+                <p>Member since {{ user.profile.joined_date.strftime('%B %Y') }}</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('profile') }}">
+            <div class="profile-section">
+                <h2>Basic Information</h2>
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" value="{{ user.username }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="school">School</label>
+                    <select id="school" name="school" required>
+                        <option value="The Athenian School" {% if user.profile.school == 'The Athenian School' %}selected{% endif %}>The Athenian School</option>
+                        <option value="Dougherty Valley High" {% if user.profile.school == 'Dougherty Valley High' %}selected{% endif %}>Dougherty Valley High</option>
+                        <option value="Monte Vista High" {% if user.profile.school == 'Monte Vista High' %}selected{% endif %}>Monte Vista High</option>
+                        <option value="San Ramon Valley High" {% if user.profile.school == 'San Ramon Valley High' %}selected{% endif %}>San Ramon Valley High</option>
+                        <option value="Bentley School" {% if user.profile.school == 'Bentley School' %}selected{% endif %}>Bentley School</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h2>Change Password</h2>
+                
+                <div class="form-group password-toggle">
+                    <label for="current_password">Current Password</label>
+                    <input type="password" id="current_password" name="current_password">
+                    <i class="toggle-password" data-target="current_password">👁️</i>
+                </div>
+                
+                <div class="form-group password-toggle">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password">
+                    <i class="toggle-password" data-target="new_password">👁️</i>
+                </div>
+                
+                <p class="text-muted">Leave password fields blank if you don't want to change it.</p>
+            </div>
+
+            <div class="profile-section">
+                <h2>Your Stats</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ user.stats.listings_count }}</div>
+                        <div class="stat-label">Listings</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-value">{{ user.stats.sold_count }}</div>
+                        <div class="stat-label">Items Sold</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-value">
+                            {% if user.stats.review_count > 0 %}
+                                {{ "%.1f"|format(user.stats.rating / user.stats.review_count) }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </div>
+                        <div class="stat-label">Rating ({{ user.stats.review_count }} reviews)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <button type="submit" class="btn btn-accent">Save Changes</button>
+                <a href="{{ url_for('home') }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle password visibility
+            document.querySelectorAll('.toggle-password').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.textContent = '🙈';
+                    } else {
+                        input.type = 'password';
+                        this.textContent = '👁️';
+                    }
+                });
+            });
+            
+            // Confirm before submitting password change
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const currentPass = document.getElementById('current_password').value;
+                const newPass = document.getElementById('new_password').value;
+                
+                if ((currentPass || newPass) && (!currentPass || !newPass)) {
+                    e.preventDefault();
+                    alert('Please fill in both current and new password fields to change your password.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

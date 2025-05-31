@@ -112,10 +112,11 @@ def home():
     if user_school:
         school_filter['profile.school'] = user_school
 
-    # Get recent listings
+    # Get recent listings with school filter
     recent_listings = list(listings_collection.find(
         {'status': 'available', **school_filter}
     ).sort('created_at', -1).limit(8))
+    
     
     # Get high-end listings (price > $100)
     high_end_listings = list(listings_collection.find({
@@ -253,19 +254,15 @@ def logout():
 @app.route('/listings')
 def listings():
     # Get current user's school
-    user_school = current_user.user_data.get('profile', {}).get('school', None)
+    user_school = None
+    if current_user.is_authenticated:
+        user_school = current_user.user_data.get('profile', {}).get('school', None)
+    
     if not user_school:
         flash('Your profile does not have a school set. Please update your profile before listing an item.', 'danger')
-        return redirect(url_for('sell'))
+        return redirect(url_for('profile'))
 
-    # Get filter parameters
-    neighborhood = request.args.get('neighborhood', 'all')
-    category = request.args.get('category', 'all')
-    price_min = request.args.get('price_min', type=int)
-    price_max = request.args.get('price_max', type=int)
-    search = request.args.get('search', '')
-    
-    # Build query
+    # Build query with school filter
     query = {'status': 'available', 'profile.school': user_school}
     
     if neighborhood != 'all':
@@ -1030,6 +1027,58 @@ def update_listing(listing_id):
     
     return redirect(url_for('my_listings'))
 
-
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        # Get form data
+        username = request.form.get('username')
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        school = request.form.get('school')
+        
+        # Initialize updates dictionary
+        updates = {}
+        
+        # Check if username is being changed
+        if username and username != current_user.username:
+            # Check if new username is available
+            if users_collection.find_one({'username': username, '_id': {'$ne': ObjectId(current_user.id)}}):
+                flash('Username already taken. Please choose another.', 'danger')
+            else:
+                updates['username'] = username
+        
+        # Check if password is being changed
+        if current_password and new_password:
+            # Verify current password
+            user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
+            if bcrypt.check_password_hash(user_data['password'], current_password):
+                updates['password'] = bcrypt.generate_password_hash(new_password).decode('utf-8')
+            else:
+                flash('Current password is incorrect.', 'danger')
+        
+        # Check if school is being changed
+        if school and school != current_user.user_data.get('profile', {}).get('school', ''):
+            updates['profile.school'] = school
+        
+        # Apply updates if any
+        if updates:
+            updates['updated_at'] = datetime.utcnow()
+            users_collection.update_one(
+                {'_id': ObjectId(current_user.id)},
+                {'$set': updates}
+            )
+            
+            # Refresh user data
+            user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
+            login_user(User(user_data))
+            
+            flash('Profile updated successfully!', 'success')
+        
+        return redirect(url_for('profile'))
+    
+    # Get user data for display
+    user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
+    return render_template('profile.html', user=user_data)
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

@@ -132,7 +132,7 @@
         <nav>
             <div class="logo">
                 <span class="logo-icon">🌱</span> 
-                Hathor
+                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
             </div>
             <div class="nav-links">
                 <a href="{{ url_for('home') }}">Home</a>
@@ -150,6 +150,11 @@
                     <a href="{{ url_for('liked_items') }}">
                         <button class="btn">Saved</button>
                     </a>
+                    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('profile') }}">
+        <button class="btn">Profile</button>
+    </a>
+{% endif %}
                     <a href="{{ url_for('logout') }}">
                         <button class="btn">Logout</button>
                     </a>
