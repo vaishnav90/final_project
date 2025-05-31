@@ -825,6 +825,28 @@ html, body {
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
+.auth-form select[name="school"] {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1.5px solid #cfd8dc;
+    border-radius: var(--radius);
+    background: #f5f7fa;
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+    transition: border 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    outline: none;
+}
+
+.auth-form select[name="school"]:focus {
+    border-color: var(--text-light);
+    background: #fff;
+}
+
 .auth-form button:hover {
     background-color: var(--primary-dark); /* Darker shade of the primary color */
     transform: translateY(-2px); /* Slight lift effect */

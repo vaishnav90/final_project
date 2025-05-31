@@ -103,20 +103,30 @@ initialize_neighborhoods()
 
 @app.route('/')
 def home():
+    user_school = None
+    if current_user.is_authenticated:
+        user_school = current_user.user_data.get('profile', {}).get('school', None)
+
+    # Filter by school if user is logged in and has a school set
+    school_filter = {}
+    if user_school:
+        school_filter['profile.school'] = user_school
+
     # Get recent listings
-    recent_listings = list(listings_collection.find({'status': 'available'})
-                          .sort('created_at', -1)
-                          .limit(8))
+    recent_listings = list(listings_collection.find(
+        {'status': 'available', **school_filter}
+    ).sort('created_at', -1).limit(8))
     
     # Get high-end listings (price > $100)
     high_end_listings = list(listings_collection.find({
         'status': 'available',
-        'price': {'$gt': 100}
+        'price': {'$gt': 100},
+        **school_filter
     }).sort('created_at', -1).limit(4))
     
     # Get popular categories with item counts
     pipeline = [
-        {'$match': {'status': 'available'}},
+        {'$match': {'status': 'available', **school_filter}},
         {'$group': {'_id': '$category', 'count': {'$sum': 1}}},
         {'$sort': {'count': -1}},
         {'$limit': 4}
@@ -145,6 +155,7 @@ def signup():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
+        school = request.form['school']
         
         # Check if user already exists
         if users_collection.find_one({'email': email}):
@@ -168,6 +179,7 @@ def signup():
                 'last_name': '',
                 'avatar': '',
                 'bio': '',
+                'school': school,
                 'neighborhood': '',
                 'joined_date': datetime.utcnow(),
                 'last_active': datetime.utcnow()
@@ -240,6 +252,12 @@ def logout():
 
 @app.route('/listings')
 def listings():
+    # Get current user's school
+    user_school = current_user.user_data.get('profile', {}).get('school', None)
+    if not user_school:
+        flash('Your profile does not have a school set. Please update your profile before listing an item.', 'danger')
+        return redirect(url_for('sell'))
+
     # Get filter parameters
     neighborhood = request.args.get('neighborhood', 'all')
     category = request.args.get('category', 'all')
@@ -248,7 +266,7 @@ def listings():
     search = request.args.get('search', '')
     
     # Build query
-    query = {'status': 'available'}
+    query = {'status': 'available', 'profile.school': user_school}
     
     if neighborhood != 'all':
         query['neighborhood'] = neighborhood
@@ -358,6 +376,9 @@ def sell():
                     result = images_collection.insert_one(image_doc)
                     image_ids.append(str(result.inserted_id))
         
+        # Get the user's school from their profile
+        user_school = current_user.user_data.get('profile', {}).get('school', None)
+        
         new_listing = {
             'title': request.form['title'],
             'description': request.form['description'],
@@ -366,13 +387,16 @@ def sell():
             'size': request.form['size'],
             'condition': request.form['condition'],
             'neighborhood': request.form['neighborhood'],
-            'images': image_ids,  # Store image IDs from MongoDB
+            'images': image_ids,
             'status': 'available',
             'seller_id': current_user.id,
             'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow(),
             'views': 0,
-            'saves': 0
+            'saves': 0,
+            'profile': {
+                'school': user_school
+            }
         }
         
         listings_collection.insert_one(new_listing)
