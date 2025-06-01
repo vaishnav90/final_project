@@ -1,470 +1,243 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages | APP</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+{% extends "base.html" %}
 
-        .messaging-container {
-            max-width: 1200px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
-            height: 80vh;
-        }
-
-        .conversations-sidebar {
-            background: #f8f9fa;
-            height: 100%;
-            overflow-y: auto;
-            border-right: 1px solid #dee2e6;
-        }
-
-        .conversation-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #dee2e6;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .conversation-item:hover {
-            background-color: #f1f1f1;
-        }
-
-        .conversation-item.active {
-            background-color: #e9ecef;
-            border-left: 4px solid #0d6efd;
-        }
-
-        .conversation-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-        }
-
-        .chat-header {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-bottom: 1px solid #dee2e6;
-            display: flex;
-            align-items: center;
-        }
-
-        .messages-container {
-            height: calc(100% - 140px);
-            overflow-y: auto;
-            padding: 20px;
-            background: white;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            display: flex;
-        }
-
-        .message.sent {
-            justify-content: flex-end;
-        }
-
-        .message-bubble {
-            max-width: 70%;
-            padding: 10px 15px;
-            border-radius: 18px;
-            position: relative;
-            word-wrap: break-word;
-        }
-
-        .message.received .message-bubble {
-            background: #f1f1f1;
-            border-bottom-left-radius: 5px;
-        }
-
-        .message.sent .message-bubble {
-            background: #0d6efd;
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
-
-        .message-time {
-            font-size: 11px;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
-
-        .message.received .message-time {
-            text-align: left;
-        }
-
-        .message.sent .message-time {
-            text-align: right;
-        }
-
-        .message-input-container {
-            padding: 15px;
-            background: #f8f9fa;
-            border-top: 1px solid #dee2e6;
-        }
-
-        .message-input {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .message-textarea {
-            flex: 1;
-            border: 1px solid #dee2e6;
-            border-radius: 20px;
-            padding: 10px 15px;
-            resize: none;
-            font-size: 14px;
-            min-height: 40px;
-            max-height: 120px;
-        }
-
-        .message-textarea:focus {
-            outline: none;
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
-        }
-
-        .send-button {
-            background: #0d6efd;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .send-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .typing-indicator {
-            display: none;
-            padding: 5px 20px;
-            font-style: italic;
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .no-conversation {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: #6c757d;
-        }
-
-        @media (max-width: 768px) {
-            .messaging-container {
-                height: 100vh;
-                margin: 0;
-                border-radius: 0;
-            }
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex h-[calc(100vh-12rem)] bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <!-- Conversations Sidebar -->
+        <div class="w-1/3 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Messages</h2>
+            </div>
             
-            .conversations-sidebar {
-                position: absolute;
-                left: -100%;
-                width: 100%;
-                z-index: 1000;
-                transition: left 0.3s ease;
-            }
-            
-            .conversations-sidebar.show {
-                left: 0;
-            }
-            
-            .mobile-toggle {
-                display: block;
-                margin-right: 10px;
-            }
-        }
-
-        .mobile-toggle {
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="messaging-container">
-            <div class="row h-100">
-                <!-- Conversations Sidebar -->
-                <div class="col-md-4 p-0">
-                    <div class="conversations-sidebar" id="conversations-sidebar">
-                        <div class="p-3 border-bottom">
-                            <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Messages</h5>
+            <div class="overflow-y-auto flex-1">
+                {% for data in conversations %}
+                <a href="{{ url_for('conversation', conversation_id=data.conversation._id) }}" 
+                   class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors {% if conversation and conversation._id == data.conversation._id %}bg-primary/5 dark:bg-primary/10{% endif %}">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center text-primary dark:text-primary-light font-semibold">
+                            {{ data.other_user.username|first|upper }}
                         </div>
-                        <div id="conversations-list">
-                            {% for data in conversations %}
-                            <div class="conversation-item {% if data.conversation._id|string == conversation._id|string %}active{% endif %}" 
-                                 onclick="window.location='{{ url_for('conversation', conversation_id=data.conversation._id) }}'">
-                                <div class="d-flex align-items-center">
-                                    <div class="conversation-avatar">
-                                        {{ data.other_user.username|first|upper }}
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-0">{{ data.other_user.username }}</h6>
-                                        <small class="text-muted">
-                                            {% if data.conversation.messages %}
-                                                {{ data.conversation.messages[-1].content|truncate(30) }}
-                                            {% else %}
-                                                No messages yet
-                                            {% endif %}
-                                        </small>
-                                    </div>
-                                </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start">
+                                <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ data.other_user.username }}</h3>
+                                {% if data.conversation.messages %}
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ data.conversation.messages[-1].sent_at.strftime('%I:%M %p') }}
+                                    </span>
+                                {% endif %}
                             </div>
-                            {% endfor %}
+                            <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                {% if data.conversation.messages %}
+                                    {% if data.conversation.messages[-1].sender_id == current_user.id %}
+                                        You: {{ data.conversation.messages[-1].content }}
+                                    {% else %}
+                                        {{ data.conversation.messages[-1].content }}
+                                    {% endif %}
+                                {% else %}
+                                    No messages yet
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
-                </div>
-
-                <!-- Chat Area -->
-                <div class="col-md-8 p-0 d-flex flex-column">
-                    {% if conversation %}
-                    <div class="chat-header">
-                        <button class="mobile-toggle d-md-none" onclick="toggleSidebar()">
-                            <i class="fas fa-arrow-left"></i>
-                        </button>
-                        <div class="d-flex align-items-center flex-grow-1">
-                            <div class="conversation-avatar me-3">
-                                {{ other_user.username|first|upper }}
-                            </div>
-                            <div>
-                                <h6 class="mb-0">{{ other_user.username }}</h6>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="messages-container" id="messages-container">
-                        {% for message in conversation.messages %}
-                        <div class="message {% if message.sender_id == current_user.id %}sent{% else %}received{% endif %}">
-                            <div class="message-bubble">
-                                {{ message.content }}
-                                <div class="message-time">
-                                    {{ message.sent_at.strftime('%b %d, %I:%M %p') }}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="typing-indicator" id="typing-indicator">
-                        {{ other_user.username }} is typing...
-                    </div>
-                    
-                    <div class="message-input-container">
-                        <form id="message-form" onsubmit="sendMessage(event)">
-                            <div class="message-input">
-                                <textarea class="message-textarea" placeholder="Type your message..." 
-                                          id="message-input" rows="1" required></textarea>
-                                <button type="submit" class="send-button" id="send-button">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    {% else %}
-                    <div class="no-conversation">
-                        <i class="fas fa-comment-alt fa-3x mb-3"></i>
-                        <h4>Select a conversation</h4>
-                        <p>Choose a conversation from the left to start messaging</p>
-                    </div>
-                    {% endif %}
-                </div>
+                </a>
+                {% endfor %}
             </div>
         </div>
-    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script>
-        // Initialize Socket.IO connection
-        const socket = io();
-        
-        // Current conversation data
-        const conversationId = "{{ conversation._id if conversation else '' }}";
-        const currentUserId = "{{ current_user.id }}";
-        const otherUserId = "{{ other_user._id if conversation else '' }}";
-        const otherUsername = "{{ other_user.username if conversation else '' }}";
-        
-        // Join conversation room if we're in one
-        if (conversationId) {
-            socket.emit('join_conversation', { conversation_id: conversationId });
-            
-            // Setup message input functionality
-            const messageInput = document.getElementById('message-input');
-            const messageForm = document.getElementById('message-form');
-            const typingIndicator = document.getElementById('typing-indicator');
-            
-            let isTyping = false;
-            let typingTimeout;
-            
-            // Auto-resize textarea
-            if (messageInput) {
-                messageInput.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                    
-                    // Show typing indicator
-                    if (!isTyping && this.value.trim().length > 0) {
-                        isTyping = true;
-                        socket.emit('typing', {
-                            conversation_id: conversationId,
-                            sender_id: currentUserId,
-                            recipient_id: otherUserId
-                        });
-                    }
-                    
-                    clearTimeout(typingTimeout);
-                    typingTimeout = setTimeout(() => {
-                        isTyping = false;
-                        socket.emit('stop_typing', {
-                            conversation_id: conversationId,
-                            sender_id: currentUserId,
-                            recipient_id: otherUserId
-                        });
-                    }, 2000);
-                });
-            }
-            
-            // Socket.IO event listeners
-            socket.on('new_message', (data) => {
-                if (data.conversation_id === conversationId) {
-                    // Create a new message element and append it
-                    const messagesContainer = document.getElementById('messages-container');
-                    const isCurrentUser = data.sender_id === currentUserId;
-                    
-                    const messageElement = document.createElement('div');
-                    messageElement.className = `message ${isCurrentUser ? 'sent' : 'received'}`;
-                    messageElement.innerHTML = `
-                        <div class="message-bubble">
-                            ${data.content}
-                            <div class="message-time">
-                                ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col">
+            {% if conversation %}
+                <!-- Chat Header -->
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center text-primary dark:text-primary-light font-semibold">
+                            {{ other_user.username|first|upper }}
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 dark:text-white">{{ other_user.username }}</h3>
+                            {% if listing %}
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    Discussing: {{ listing.title }}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if listing %}
+                        <a href="{{ url_for('listing_detail', listing_id=listing._id) }}" 
+                           class="text-primary dark:text-primary-light hover:text-primary-dark dark:hover:text-primary-light/80">
+                            View Listing
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Messages -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container">
+                    {% for message in conversation.messages %}
+                        <div class="flex {% if message.sender_id == current_user.id %}justify-end{% endif %}">
+                            <div class="max-w-[70%] {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white{% endif %} rounded-lg px-4 py-2 shadow-sm">
+                                <p>{{ message.content }}</p>
+                                <p class="text-xs {% if message.sender_id == current_user.id %}text-white/80{% else %}text-gray-500 dark:text-gray-400{% endif %} mt-1">
+                                    {{ message.sent_at.strftime('%I:%M %p') }}
+                                </p>
                             </div>
                         </div>
-                    `;
-                    
-                    messagesContainer.appendChild(messageElement);
-                    scrollToBottom();
-                }
-            });
-            
-            socket.on('typing', (data) => {
-                if (data.conversation_id === conversationId && data.sender_id === otherUserId) {
-                    typingIndicator.style.display = 'block';
-                }
-            });
-            
-            socket.on('stop_typing', (data) => {
-                if (data.conversation_id === conversationId && data.sender_id === otherUserId) {
-                    typingIndicator.style.display = 'none';
-                }
-            });
-            
-            // Scroll to bottom of messages initially
-            scrollToBottom();
-        }
+                    {% endfor %}
+                </div>
+
+                <!-- Message Input -->
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <form id="message-form" class="flex space-x-4">
+                        <input type="hidden" name="listing_id" value="{{ listing._id if listing else '' }}">
+                        <input type="hidden" name="recipient_id" value="{{ other_user._id }}">
+                        <input type="text" 
+                               name="content" 
+                               id="message-input"
+                               placeholder="Type your message..."
+                               class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <button type="submit" 
+                                class="bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            Send
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="flex-1 flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-comments text-2xl text-primary dark:text-primary-light"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No Conversation Selected</h3>
+                        <p class="text-gray-500 dark:text-gray-400">Choose a conversation from the sidebar to start chatting</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const socket = io();
+        const messagesContainer = document.getElementById('messages-container');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
         
-        // Send message function
-        function sendMessage(event) {
-            event.preventDefault();
+        {% if conversation %}
+            // Join the conversation room
+            socket.emit('join_conversation', {
+                conversation_id: '{{ conversation._id }}'
+            });
             
-            const messageInput = document.getElementById('message-input');
-            const content = messageInput.value.trim();
+            // Scroll to bottom of messages
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
-            if (!content || !conversationId) return;
-            
-            fetch('/send_message', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    listing_id: "{{ conversation.listing_id if conversation else '' }}",
-                    recipient_id: otherUserId,
-                    content: content
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    console.error(data.error);
-                    alert('Failed to send message');
-                } else {
-                    // Clear input
-                    messageInput.value = '';
-                    messageInput.style.height = 'auto';
-                    
-                    // Emit socket event to notify other user
-                    socket.emit('new_message', {
-                        conversation_id: conversationId,
-                        sender_id: currentUserId,
-                        recipient_id: otherUserId,
-                        content: content,
-                        sent_at: new Date().toISOString()
+            // Handle form submission
+            messageForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const content = messageInput.value.trim();
+                if (!content) return;
+                
+                try {
+                    const response = await fetch('{{ url_for("send_message") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams({
+                            listing_id: '{{ listing._id if listing else "" }}',
+                            recipient_id: '{{ other_user._id }}',
+                            content: content
+                        })
                     });
                     
-                    // Add the message to the UI immediately
-                    const messagesContainer = document.getElementById('messages-container');
-                    const messageElement = document.createElement('div');
-                    messageElement.className = 'message sent';
-                    messageElement.innerHTML = `
-                        <div class="message-bubble">
-                            ${content}
-                            <div class="message-time">
-                                ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            </div>
-                        </div>
-                    `;
-                    messagesContainer.appendChild(messageElement);
-                    scrollToBottom();
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        messageInput.value = '';
+                        messageInput.focus();
+                        
+                        // Emit new_message event
+                        socket.emit('new_message', {
+                            conversation_id: '{{ conversation._id }}',
+                            sender_id: '{{ current_user.id }}',
+                            content: content,
+                            sent_at: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to send message');
             });
-        }
-        
-        // Toggle mobile sidebar
-        function toggleSidebar() {
-            const sidebar = document.getElementById('conversations-sidebar');
-            sidebar.classList.toggle('show');
-        }
-        
-        // Scroll to bottom of messages
-        function scrollToBottom() {
-            const messagesContainer = document.getElementById('messages-container');
-            if (messagesContainer) {
+            
+            // Handle incoming messages
+            socket.on('new_message', function(data) {
+                const isCurrentUser = data.sender_id === '{{ current_user.id }}';
+                const messageHTML = `
+                    <div class="flex ${isCurrentUser ? 'justify-end' : ''}">
+                        <div class="max-w-[70%] ${isCurrentUser ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'} rounded-lg px-4 py-2 shadow-sm">
+                            <p>${data.content}</p>
+                            <p class="text-xs ${isCurrentUser ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'} mt-1">
+                                ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        }
-    </script>
-</body>
-</html>
+            });
+            
+            // Handle typing indicators
+            let typingTimeout;
+            messageInput.addEventListener('input', function() {
+                socket.emit('typing', {
+                    conversation_id: '{{ conversation._id }}',
+                    recipient_id: '{{ other_user._id }}'
+                });
+                
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    socket.emit('stop_typing', {
+                        conversation_id: '{{ conversation._id }}',
+                        recipient_id: '{{ other_user._id }}'
+                    });
+                }, 1000);
+            });
+            
+            socket.on('typing', function(data) {
+                if (data.sender_id === '{{ other_user._id }}') {
+                    // Show typing indicator
+                    const typingIndicator = document.getElementById('typing-indicator');
+                    if (!typingIndicator) {
+                        const indicatorHTML = `
+                            <div id="typing-indicator" class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 animate-pulse">
+                                <span>{{ other_user.username }} is typing</span>
+                                <div class="flex space-x-1">
+                                    <div class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
+                                    <div class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
+                                    <div class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        `;
+                        messagesContainer.insertAdjacentHTML('beforeend', indicatorHTML);
+                    }
+                }
+            });
+            
+            socket.on('stop_typing', function(data) {
+                if (data.sender_id === '{{ other_user._id }}') {
+                    // Remove typing indicator
+                    const typingIndicator = document.getElementById('typing-indicator');
+                    if (typingIndicator) {
+                        typingIndicator.remove();
+                    }
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

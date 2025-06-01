@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Search and Filters -->
+    <div class="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 animate-fade-in">
+        <form method="GET" action="{{ url_for('listings') }}" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Search -->
+                <div class="md:col-span-2">
+                    <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
+                    <div class="relative">
+                        <input type="text" 
+                               name="search" 
+                               id="search" 
+                               value="{{ request.args.get('search', '') }}"
+                               placeholder="Search listings..."
+                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                    <select name="category" 
+                            id="category"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}" {% if request.args.get('category') == category.name %}selected{% endif %}>
+                            {{ category.display_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sort -->
+                <div>
+                    <label for="sort" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By</label>
+                    <select name="sort" 
+                            id="sort"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>Newest First</option>
+                        <option value="price_low" {% if request.args.get('sort') == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_high" {% if request.args.get('sort') == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Price Range -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="min_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Min Price</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400">$</span>
+                        <input type="number" 
+                               name="min_price" 
+                               id="min_price"
+                               min="0"
+                               step="0.01"
+                               value="{{ request.args.get('min_price', '') }}"
+                               placeholder="0"
+                               class="w-full pl-8 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                    </div>
+                </div>
+                <div>
+                    <label for="max_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Price</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 dark:text-gray-400">$</span>
+                        <input type="number" 
+                               name="max_price" 
+                               id="max_price"
+                               min="0"
+                               step="0.01"
+                               value="{{ request.args.get('max_price', '') }}"
+                               placeholder="No limit"
+                               class="w-full pl-8 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <a href="{{ url_for('listings') }}" 
+                   class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    Clear Filters
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors">
+                    Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white font-display">
+                {% if request.args.get('search') %}
+                    Search Results for "{{ request.args.get('search') }}"
+                {% else %}
+                    All Listings
+                {% endif %}
+            </h2>
+            <p class="text-gray-600 dark:text-gray-400">{{ listings|length }} items found</p>
+        </div>
+
+        {% if listings %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for listing in listings %}
+            <div class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-102">
+                <a href="{{ url_for('listing_detail', listing_id=listing._id) }}" class="block">
+                    {% if listing.images %}
+                    <div class="aspect-w-1 aspect-h-1 bg-gray-200 dark:bg-gray-700">
+                        <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                             alt="{{ listing.title }}"
+                             class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    </div>
+                    {% else %}
+                    <div class="aspect-w-1 aspect-h-1 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <span class="text-gray-400 dark:text-gray-500">No image</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light rounded-full text-sm font-medium">
+                                {{ listing.category }}
+                            </span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ listing.created_at|timeago }}</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-primary dark:group-hover:text-primary-light transition-colors">{{ listing.title }}</h3>
+                        <p class="text-xl font-bold text-primary dark:text-primary-light mb-2">${{ "%.2f"|format(listing.price) }}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">{{ listing.neighborhood }}</span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">{{ listing.condition }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="mb-4">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No listings found</h3>
+            <p class="text-gray-500 dark:text-gray-400">Try adjusting your filters or search terms</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Mobile filter toggle
+    const filterToggle = document.getElementById('filterToggle');
+    const filterSidebar = document.getElementById('filterSidebar');
+
+    filterToggle.addEventListener('click', () => {
+        filterSidebar.classList.toggle('hidden');
+        const svg = filterToggle.querySelector('svg');
+        svg.style.transform = filterSidebar.classList.contains('hidden') ? '' : 'rotate(180deg)';
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) { // md breakpoint
+            filterSidebar.classList.remove('hidden');
+        } else {
+            filterSidebar.classList.add('hidden');
+        }
+    });
+</script>
+{% endblock %} 

@@ -3,7 +3,7 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from werkzeug.utils import secure_filename
 from flask_mail import Mail, Message
@@ -11,9 +11,11 @@ import smtplib
 from flask import send_file
 from io import BytesIO
 from bson import ObjectId
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this to a secure secret key
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 client = MongoClient('mongodb+srv://vaishnavanand:vannd0108@cluster0.clkkf3n.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 db = client['rethread']
@@ -31,9 +33,9 @@ images_collection = db['images']
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Replace with your email
-app.config['MAIL_PASSWORD'] = 'your-email-password'  # Replace with your email password or app password
-app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
+app.config['MAIL_USERNAME'] = 'vaishnavanand90@gmail.com'
+app.config['MAIL_PASSWORD'] = 'your-app-password'  # You'll need to replace this with an App Password from Google Account settings
+app.config['MAIL_DEFAULT_SENDER'] = 'vaishnavanand90@gmail.com'
 
 messages_collection.create_index([('participants', 1)])
 messages_collection.create_index([('listing_id', 1)])
@@ -112,19 +114,19 @@ def home():
     if user_school:
         school_filter['profile.school'] = user_school
 
-    # Get recent listings with school filter
-    recent_listings = list(listings_collection.find(
-        {'status': 'available', **school_filter}
-    ).sort('created_at', -1).limit(8))
-    
-    
-    # Get high-end listings (price > $100)
-    high_end_listings = list(listings_collection.find({
+    # Get featured listings
+    featured_listings = list(listings_collection.find({
         'status': 'available',
-        'price': {'$gt': 100},
+        'is_featured': True,
         **school_filter
-    }).sort('created_at', -1).limit(4))
-    
+    }).sort('created_at', -1).limit(8))
+
+    # Get liked listings for the current user
+    liked_listings = set()
+    if current_user.is_authenticated:
+        saved_items = saved_items_collection.find({'user_id': ObjectId(current_user.id)})
+        liked_listings = {str(item['listing_id']) for item in saved_items}
+
     # Get popular categories with item counts
     pipeline = [
         {'$match': {'status': 'available', **school_filter}},
@@ -146,10 +148,11 @@ def home():
     if not popular_categories:
         popular_categories = list(categories_collection.find().limit(4))
     
-    return render_template('index.html', 
-                         recent_listings=recent_listings,
-                         high_end_listings=high_end_listings,
+    return render_template('index.html',
+                         featured_listings=featured_listings,
+                         liked_listings=liked_listings,
                          popular_categories=popular_categories)
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -262,13 +265,21 @@ def listings():
         flash('Your profile does not have a school set. Please update your profile before listing an item.', 'danger')
         return redirect(url_for('profile'))
 
+    # Get filter parameters from request
+    neighborhood = request.args.get('neighborhood', 'all')
+    category = request.args.get('category', '')
+    price_min = float(request.args.get('min_price')) if request.args.get('min_price') else None
+    price_max = float(request.args.get('max_price')) if request.args.get('max_price') else None
+    search = request.args.get('search', '')
+    sort = request.args.get('sort', 'newest')
+
     # Build query with school filter
     query = {'status': 'available', 'profile.school': user_school}
     
     if neighborhood != 'all':
         query['neighborhood'] = neighborhood
     
-    if category != 'all':
+    if category:
         query['category'] = category
     
     if price_min is not None:
@@ -283,43 +294,34 @@ def listings():
             {'description': {'$regex': search, '$options': 'i'}}
         ]
     
-    # Get listings
-    listings = list(listings_collection.find(query).sort('created_at', -1))
+    # Determine sort order
+    sort_options = {
+        'newest': ('created_at', -1),
+        'price_low': ('price', 1),
+        'price_high': ('price', -1)
+    }
+    sort_field, sort_direction = sort_options.get(sort, ('created_at', -1))
+    
+    # Get listings and ensure created_at has timezone info
+    listings = list(listings_collection.find(query).sort(sort_field, sort_direction))
+    for listing in listings:
+        if 'created_at' in listing and listing['created_at'].tzinfo is None:
+            listing['created_at'] = listing['created_at'].replace(tzinfo=timezone.utc)
     
     # Get filter options
     neighborhoods = list(neighborhoods_collection.find())
     categories = list(categories_collection.find())
-     # Get recent listings
-    recent_listings = list(listings_collection.find({'status': 'available'})
-                          .sort('created_at', -1)
-                          .limit(8))
     
-    # Get high-end listings (price > $100)
-    high_end_listings = list(listings_collection.find({
-        'status': 'available',
-        'price': {'$gt': 100}
-    }).sort('created_at', -1).limit(4))
-    
-    # Get popular categories with item counts
-    pipeline = [
-        {'$match': {'status': 'available'}},
-        {'$group': {'_id': '$category', 'count': {'$sum': 1}}},
-        {'$sort': {'count': -1}},
-        {'$limit': 4}
-    ]
-    
-    category_counts = list(listings_collection.aggregate(pipeline))
-    popular_categories = []
-    return render_template('index.html',
-                           recent_listings=recent_listings,
-                         high_end_listings=high_end_listings,
-                         popular_categories=popular_categories) 
-                        #  listings=listings,
-                        #  neighborhoods=neighborhoods,
-                        #  categories=categories,
-                        #  selected_neighborhood=neighborhood,
-                        #  selected_category=category,
-                        #  search_query=search)
+    return render_template('listings.html',
+                         listings=listings,
+                         neighborhoods=neighborhoods,
+                         categories=categories,
+                         selected_neighborhood=neighborhood,
+                         selected_category=category,
+                         search_query=search,
+                         price_min=price_min,
+                         price_max=price_max,
+                         current_sort=sort)
 
 @app.route('/listings/<listing_id>')
 def listing_detail(listing_id):
@@ -422,85 +424,108 @@ def liked_items():
     liked_listings = list(listings_collection.find({'_id': {'$in': listing_ids}}))
     
     return render_template('liked.html', listings=liked_listings)
+
 @app.route('/messages')
 @login_required
 def messages():
     try:
-        # Get all conversations where current user is a participant
+        # Get all conversations
         conversations = list(messages_collection.find({
             'participants': current_user.id
         }).sort('last_message', -1))
-
-        enhanced_conversations = []
         
+        conversations_data = []
         for conv in conversations:
-
-            listing = listings_collection.find_one({'_id': ObjectId(conv['listing_id'])})
-
-            other_user_id = next(p for p in conv['participants'] if p != current_user.id)
+            # Get other user
+            other_user_id = next(id for id in conv['participants'] if id != current_user.id)
             other_user = users_collection.find_one({'_id': ObjectId(other_user_id)})
-
-            transactions = list(transactions_collection.find({
-                'listing_id': conv['listing_id'],
-                '$or': [
-                    {'buyer_id': current_user.id},
-                    {'seller_id': current_user.id}
-                ],
-                'status': {'$ne': 'declined'}  
-            }).sort('created_at', -1))
-
-            enhanced_conversations.append({
+            
+            # Get listing if it exists
+            listing = None
+            if 'listing_id' in conv:
+                listing = listings_collection.find_one({'_id': ObjectId(conv['listing_id'])})
+            
+            conversations_data.append({
                 'conversation': conv,
-                'listing': listing,
                 'other_user': other_user,
-                'transactions': transactions
+                'listing': listing
             })
-
-        return render_template('messages.html', 
-                            conversations=enhanced_conversations)
-    
+        
+        return render_template('messages.html', conversations=conversations_data)
     except Exception as e:
         print(f"Error loading messages: {str(e)}")
-        flash('Error loading messages', 'danger')
+        flash('Error loading messages. Please try again.', 'danger')
         return redirect(url_for('home'))
 
-@app.route('/messages/<conversation_id>')
+@app.route('/conversation/<conversation_id>')
 @login_required
 def conversation(conversation_id):
     try:
-        conversation = messages_collection.find_one({
-            '_id': ObjectId(conversation_id),
-            'participants': current_user.id
-        })
-        
+        # Get conversation
+        conversation = messages_collection.find_one({'_id': ObjectId(conversation_id)})
         if not conversation:
             flash('Conversation not found.', 'danger')
             return redirect(url_for('messages'))
         
-
-        listing = listings_collection.find_one({'_id': ObjectId(conversation['listing_id'])})
-        other_user_id = [p for p in conversation['participants'] if p != current_user.id][0]
+        # Check if user is part of conversation
+        if current_user.id not in conversation['participants']:
+            flash('You do not have access to this conversation.', 'danger')
+            return redirect(url_for('messages'))
+        
+        # Get other user
+        other_user_id = next(id for id in conversation['participants'] if id != current_user.id)
         other_user = users_collection.find_one({'_id': ObjectId(other_user_id)})
-
-        return render_template('messages.html')
-    except:
-        flash('Invalid conversation ID.', 'danger')
+        
+        # Get listing if it exists
+        listing = None
+        if 'listing_id' in conversation:
+            listing = listings_collection.find_one({'_id': ObjectId(conversation['listing_id'])})
+        
+        # Get all conversations for sidebar
+        all_conversations = list(messages_collection.find({
+            'participants': current_user.id
+        }).sort('last_message', -1))
+        
+        conversations_data = []
+        for conv in all_conversations:
+            other_id = next(id for id in conv['participants'] if id != current_user.id)
+            other = users_collection.find_one({'_id': ObjectId(other_id)})
+            conversations_data.append({
+                'conversation': conv,
+                'other_user': other
+            })
+        
+        return render_template('conversation.html',
+                             conversation=conversation,
+                             other_user=other_user,
+                             listing=listing,
+                             conversations=conversations_data)
+    except Exception as e:
+        print(f"Error viewing conversation: {str(e)}")
+        flash('Error viewing conversation. Please try again.', 'danger')
         return redirect(url_for('messages'))
 
 @app.route('/send_message', methods=['POST'])
 @login_required
 def send_message():
     try:
-        listing_id = request.form['listing_id']
-        recipient_id = request.form['recipient_id']
-        content = request.form['content']
+        listing_id = request.form.get('listing_id')
+        recipient_id = request.form.get('recipient_id')
+        content = request.form.get('content')
         
-
+        if not all([listing_id, recipient_id, content]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Find conversation
         conversation = messages_collection.find_one({
             'listing_id': listing_id,
             'participants': {'$all': [current_user.id, recipient_id]}
         })
         
+        if not conversation:
+            return jsonify({'error': 'Conversation not found'}), 404
+        
+        # Add message
         new_message = {
             'sender_id': current_user.id,
             'content': content,
@@ -508,38 +533,43 @@ def send_message():
             'read': False
         }
         
-        if conversation:
-            # Add message to existing conversation
-            messages_collection.update_one(
-                {'_id': conversation['_id']},
-                {
-                    '$push': {'messages': new_message},
-                    '$set': {'last_message': datetime.utcnow()}
-                }
-            )
-            conversation_id = str(conversation['_id'])
-        else:
-
-            new_conversation = {
-                'listing_id': listing_id,
-                'participants': [current_user.id, recipient_id],
-                'messages': [new_message],
-                'last_message': datetime.utcnow(),
-                'created_at': datetime.utcnow()
+        messages_collection.update_one(
+            {'_id': conversation['_id']},
+            {
+                '$push': {'messages': new_message},
+                '$set': {'last_message': datetime.utcnow()}
             }
-            result = messages_collection.insert_one(new_conversation)
-            conversation_id = str(result.inserted_id)
+        )
+        
+        # Send email notification if recipient has email notifications enabled
+        recipient = users_collection.find_one({'_id': ObjectId(recipient_id)})
+        if recipient and recipient.get('settings', {}).get('email_notifications', True):
+            try:
+                listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
+                msg = Message(
+                    subject=f'New message about "{listing["title"]}"',
+                    sender=app.config['MAIL_DEFAULT_SENDER'],
+                    recipients=[recipient['email']],
+                    html=render_template('message_notification.html',
+                                       sender=current_user,
+                                       listing=listing,
+                                       message=new_message,
+                                       conversation_id=str(conversation['_id']))
+                )
+                mail.send(msg)
+            except Exception as e:
+                print(f"Error sending email notification: {str(e)}")
         
         return jsonify({
             'status': 'success',
-            'conversation_id': conversation_id,
             'message': {
                 'content': content,
-                'sent_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+                'sent_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
             }
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        print(f"Error sending message: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/transactions')
 @login_required
@@ -558,6 +588,37 @@ def transactions():
 def how_it_works():
     return render_template('howitworks.html')
 
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        message = request.form.get('message')
+        
+        try:
+            # Create email message
+            msg = Message(
+                subject=f'New Contact Form Submission from {name}',
+                sender=email,
+                recipients=['vaishnavanand90@gmail.com'],
+                body=f'''New message from the contact form:
+                
+Name: {name}
+Email: {email}
+
+Message:
+{message}
+'''
+            )
+            mail.send(msg)
+            flash('Thank you for your message! We will get back to you soon.', 'success')
+        except Exception as e:
+            print(f"Error sending email: {str(e)}")
+            flash('Sorry, there was an error sending your message. Please try again later.', 'danger')
+        
+        return redirect(url_for('contact'))
+    
+    return render_template('contact.html')
 
 @app.errorhandler(404)
 def not_found_error(error):
@@ -604,6 +665,7 @@ def save_listing(listing_id):
         return jsonify({'status': status, 'saves': saves_count})
     except:
         return jsonify({'error': 'Failed to save listing'}), 400
+
 @app.route('/handle_offer/<transaction_id>', methods=['POST'])
 @login_required
 def handle_offer(transaction_id):
@@ -750,6 +812,7 @@ def handle_offer(transaction_id):
         print(f"Error handling offer: {str(e)}")
         flash('Error processing your request. Please try again.', 'danger')
         return redirect(url_for('messages'))
+
 @app.route('/complete_transaction/<transaction_id>', methods=['POST'])
 @login_required
 def complete_transaction(transaction_id):
@@ -848,6 +911,7 @@ def my_listings():
     return render_template('my_listings.html', 
                          listings=listings,
                          offers_by_listing=offers_by_listing)
+
 @app.route('/edit_listing/<listing_id>', methods=['GET', 'POST'])
 @login_required
 def edit_listing(listing_id):
@@ -919,6 +983,7 @@ def delete_listing(listing_id):
     
     flash('Listing deleted successfully', 'success')
     return redirect(url_for('home'))
+
 @app.route('/create_transaction', methods=['POST'])
 @login_required
 def create_transaction():
@@ -1004,6 +1069,7 @@ def create_transaction():
         print(f"Error creating transaction: {str(e)}")
         flash('Error creating offer. Please try again.', 'danger')
         return redirect(url_for('listing_detail', listing_id=listing_id))
+
 @app.route('/update_listing/<listing_id>', methods=['POST'])
 @login_required
 def update_listing(listing_id):
@@ -1080,5 +1146,139 @@ def profile():
     # Get user data for display
     user_data = users_collection.find_one({'_id': ObjectId(current_user.id)})
     return render_template('profile.html', user=user_data)
-if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+
+def timeago(timestamp):
+    """Convert a timestamp to "time ago" text."""
+    if not timestamp:
+        return ""
+        
+    # Make sure both timestamps are timezone-aware
+    if isinstance(timestamp, datetime):
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+    else:
+        return ""
+    
+    now = datetime.now(timezone.utc)
+    diff = now - timestamp
+
+    seconds = diff.total_seconds()
+    if seconds < 60:
+        return 'just now'
+    elif seconds < 3600:
+        minutes = int(seconds / 60)
+        return f'{minutes}m ago'
+    elif seconds < 86400:
+        hours = int(seconds / 3600)
+        return f'{hours}h ago'
+    elif seconds < 604800:
+        days = int(seconds / 86400)
+        return f'{days}d ago'
+    elif seconds < 2592000:
+        weeks = int(seconds / 604800)
+        return f'{weeks}w ago'
+    elif seconds < 31536000:
+        months = int(seconds / 2592000)
+        return f'{months}mo ago'
+    else:
+        years = int(seconds / 31536000)
+        return f'{years}y ago'
+
+# Register the filter with Jinja2
+app.jinja_env.filters['timeago'] = timeago
+
+# Socket.IO event handlers
+@socketio.on('connect')
+def handle_connect():
+    if current_user.is_authenticated:
+        join_room(current_user.id)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    if current_user.is_authenticated:
+        leave_room(current_user.id)
+
+@socketio.on('join_conversation')
+def handle_join_conversation(data):
+    if current_user.is_authenticated:
+        conversation_id = data.get('conversation_id')
+        if conversation_id:
+            join_room(conversation_id)
+
+@socketio.on('leave_conversation')
+def handle_leave_conversation(data):
+    if current_user.is_authenticated:
+        conversation_id = data.get('conversation_id')
+        if conversation_id:
+            leave_room(conversation_id)
+
+@socketio.on('typing')
+def handle_typing(data):
+    if current_user.is_authenticated:
+        conversation_id = data.get('conversation_id')
+        if conversation_id:
+            emit('typing', {
+                'sender_id': current_user.id,
+                'conversation_id': conversation_id
+            }, room=conversation_id)
+
+@socketio.on('stop_typing')
+def handle_stop_typing(data):
+    if current_user.is_authenticated:
+        conversation_id = data.get('conversation_id')
+        if conversation_id:
+            emit('stop_typing', {
+                'sender_id': current_user.id,
+                'conversation_id': conversation_id
+            }, room=conversation_id)
+
+@app.route('/start_conversation/<listing_id>', methods=['GET'])
+@login_required
+def start_conversation(listing_id):
+    try:
+        # Get listing
+        listing = listings_collection.find_one({'_id': ObjectId(listing_id)})
+        if not listing:
+            flash('Listing not found.', 'danger')
+            return redirect(url_for('listings'))
+        
+        # Can't message your own listing
+        if listing['seller_id'] == current_user.id:
+            flash('You cannot message yourself about your own listing.', 'warning')
+            return redirect(url_for('listing_detail', listing_id=listing_id))
+        
+        # Find existing conversation or create new one
+        conversation = messages_collection.find_one({
+            'listing_id': listing_id,
+            'participants': {'$all': [current_user.id, listing['seller_id']]}
+        })
+        
+        if not conversation:
+            # Create new conversation
+            conversation = {
+                'listing_id': listing_id,
+                'participants': [current_user.id, listing['seller_id']],
+                'messages': [],
+                'last_message': datetime.utcnow(),
+                'created_at': datetime.utcnow()
+            }
+            result = messages_collection.insert_one(conversation)
+            conversation_id = result.inserted_id
+        else:
+            conversation_id = conversation['_id']
+        
+        return redirect(url_for('conversation', conversation_id=conversation_id))
+    except Exception as e:
+        print(f"Error starting conversation: {str(e)}")
+        flash('Error starting conversation. Please try again.', 'danger')
+        return redirect(url_for('listing_detail', listing_id=listing_id))
+
+@socketio.on('new_message')
+def handle_new_message(data):
+    if current_user.is_authenticated:
+        conversation_id = data.get('conversation_id')
+        if conversation_id:
+            emit('new_message', data, room=conversation_id)
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True)

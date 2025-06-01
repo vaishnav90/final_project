@@ -1,455 +1,209 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ listing.title }} | APP</title>
-    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet" />
-    <style>
-        .listing-container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        
-        .listing-header {
-            margin-bottom: 2rem;
-        }
-        
-        .listing-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-        
-        @media (max-width: 768px) {
-            .listing-content {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .gallery {
-            position: relative;
-        }
-        
-        .main-image {
-            width: 100%;
-            height: 500px;
-            object-fit: contain;
-            background: #f8f8f8;
-            border-radius: var(--radius);
-            margin-bottom: 1rem;
-        }
-        
-        .thumbnail-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-        }
-        
-        .thumbnail {
-            width: 100%;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: opacity 0.3s;
-        }
-        
-        .thumbnail:hover {
-            opacity: 0.8;
-        }
-        
-        .details-section {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-        
-        .price {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary-dark);
-            margin: 1rem 0;
-        }
-        
-        .meta-item {
-            display: flex;
-            margin-bottom: 1rem;
-        }
-        
-        .meta-label {
-            font-weight: bold;
-            min-width: 120px;
-            color: var(--text-dark);
-        }
-        
-        .seller-info {
-            display: flex;
-            align-items: center;
-            margin: 2rem 0;
-            padding: 1rem;
-            background: #f8f8f8;
-            border-radius: var(--radius);
-        }
-        
-        .seller-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 1rem;
-            background: #ddd;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .save-btn {
-            background: none;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--radius);
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .save-btn.liked {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .description {
-            margin: 2rem 0;
-            line-height: 1.6;
-            white-space: pre-line;
-        }
-        
-        /* Offer modal styles */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--radius);
-            max-width: 500px;
-            width: 90%;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-        
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
-            </div>
-            <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('listings') }}">Browse</a>
-                <a href="{{ url_for('how_it_works') }}">How It Works</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('messages') }}">Messages</a>
-                {% endif %}
-            </div>
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn" id="sell-btn">Sell Item</button>
-                </a>
-                    <a href="{{ url_for('liked_items') }}">
-                        <button class="btn">Saved</button>
-                    </a>
-                    <a href="{{ url_for('logout') }}">
-                        <button class="btn">Logout</button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}">
-                        <button class="btn">Sign Up</button>
-                    </a>
-                    <a href="{{ url_for('login') }}">
-                        <button class="btn">Login</button>
-                    </a>
-                {% endif %}
-            </div>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <main class="listing-container">
-        <div class="listing-header">
-            <h1>{{ listing.title }}</h1>
-            <p>{{ listing.neighborhood.replace('-', ' ').title() }} • Listed {{ listing.created_at.strftime('%b %d, %Y') }}</p>
-        </div>
-        
-        <div class="listing-content">
-            <div class="gallery">
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+            <!-- Image Gallery -->
+            <div class="space-y-4">
                 {% if listing.images and listing.images|length > 0 %}
-                    <img id="main-image" src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
-                        alt="{{ listing.title }}" class="main-image">
-                    <div class="thumbnail-container">
-                        {% for image_id in listing.images %}
-                            <img src="{{ url_for('get_image', image_id=image_id) }}" 
-                                alt="{{ listing.title }} - image {{ loop.index }}" 
-                                class="thumbnail" 
-                                onclick="document.getElementById('main-image').src = this.src">
-                        {% endfor %}
+                    <div class="aspect-w-1 aspect-h-1 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
+                        <img id="main-image" 
+                             src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                             alt="{{ listing.title }}"
+                             class="w-full h-full object-contain">
                     </div>
+                    {% if listing.images|length > 1 %}
+                        <div class="grid grid-cols-4 gap-2">
+                            {% for image_id in listing.images %}
+                                <button onclick="document.getElementById('main-image').src = '{{ url_for('get_image', image_id=image_id) }}'"
+                                        class="aspect-w-1 aspect-h-1 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                                    <img src="{{ url_for('get_image', image_id=image_id) }}" 
+                                         alt="{{ listing.title }} - image {{ loop.index }}"
+                                         class="w-full h-full object-cover hover:opacity-75 transition-opacity">
+                                </button>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 {% else %}
-                    <div class="main-image" style="display: flex; align-items: center; justify-content: center;">
-                        <span>No images available</span>
+                    <div class="aspect-w-1 aspect-h-1 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+                        <span class="text-gray-400 dark:text-gray-500">No images available</span>
                     </div>
                 {% endif %}
             </div>
-            
-            <div class="details-section">
-                <div class="price">${{ "%.2f"|format(listing.price) }}</div>
-                
-                <div class="meta-item">
-                    <span class="meta-label">Condition:</span>
-                    <span>{{ listing.condition.replace('-', ' ').title() }}</span>
+
+            <!-- Listing Details -->
+            <div class="space-y-6">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light rounded-full text-sm font-medium">
+                            {{ listing.category }}
+                        </span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ listing.created_at|timeago }}</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ listing.title }}</h1>
+                    <p class="text-3xl font-bold text-primary dark:text-primary-light mt-2">${{ "%.2f"|format(listing.price) }}</p>
                 </div>
-                
-                <div class="meta-item">
-                    <span class="meta-label">Category:</span>
-                    <span>{{ listing.category.replace('_', ' ').title() }}</span>
-                </div>
-                
-                <div class="meta-item">
-                    <span class="meta-label">Size:</span>
-                    <span>{{ listing.size }}</span>
-                </div>
-                
-                <div class="description">
-                    {{ listing.description }}
-                </div>
-                
-                <div class="seller-info">
-                    {% if seller.profile.avatar %}
-                        <img src="{{ seller.profile.avatar }}" alt="{{ seller.username }}" class="seller-avatar">
-                    {% else %}
-                        <div class="seller-avatar"></div>
-                    {% endif %}
+
+                <!-- Item Details -->
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Condition</span>
+                            <p class="text-gray-900 dark:text-white">{{ listing.condition.replace('-', ' ').title() }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Size</span>
+                            <p class="text-gray-900 dark:text-white">{{ listing.size }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Location</span>
+                            <p class="text-gray-900 dark:text-white">{{ listing.neighborhood.replace('-', ' ').title() }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Status</span>
+                            <p class="text-gray-900 dark:text-white">{{ listing.status.title() }}</p>
+                        </div>
+                    </div>
+
                     <div>
-                        <h3>{{ seller.username }}</h3>
-                        <p>Member since {{ seller.profile.joined_date.strftime('%b %Y') }}</p>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Description</h3>
+                        <p class="text-gray-600 dark:text-gray-300 whitespace-pre-line">{{ listing.description }}</p>
                     </div>
                 </div>
-                
-                <div class="action-buttons">
+
+                <!-- Seller Info -->
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center text-primary dark:text-primary-light font-semibold text-lg">
+                            {{ seller.username|first|upper }}
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 dark:text-white">{{ seller.username }}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Member since {{ seller.profile.joined_date.strftime('%b %Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                     {% if current_user.is_authenticated %}
                         {% if current_user.id != listing.seller_id %}
-                            <button class="btn btn-accent" id="buy-now-btn">Buy Now</button>
-                            <button class="btn btn-outline" id="make-offer-btn">Make Offer</button>
+                            <button class="flex-1 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white px-6 py-3 rounded-lg font-medium transition-colors" id="make-offer-btn">
+                                Make Offer
+                            </button>
+                            <a href="{{ url_for('start_conversation', listing_id=listing._id) }}" 
+                               class="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-medium text-center transition-colors">
+                                Message Seller
+                            </a>
                             <button class="save-btn {% if is_saved %}liked{% endif %}" id="save-btn" 
                                     data-listing-id="{{ listing._id }}">
                                 {% if is_saved %}❤️ Saved{% else %}♡ Save{% endif %}
                             </button>
                         {% else %}
-                            <a href="{{ url_for('edit_listing', listing_id=listing._id) }}" class="btn">Edit Listing</a>
+                            <a href="{{ url_for('edit_listing', listing_id=listing._id) }}" 
+                               class="flex-1 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white px-6 py-3 rounded-lg font-medium text-center transition-colors">
+                                Edit Listing
+                            </a>
                         {% endif %}
                     {% else %}
-                        <a href="{{ url_for('login') }}" class="btn btn-accent">Login to Purchase</a>
+                        <a href="{{ url_for('login') }}" 
+                           class="flex-1 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white px-6 py-3 rounded-lg font-medium text-center transition-colors">
+                            Login to Purchase
+                        </a>
                     {% endif %}
                 </div>
-                
-                <!-- Buy Now Modal -->
-                <div class="modal-overlay" id="buy-now-modal">
-                    <div class="modal-content">
-                        <h2>Confirm Purchase</h2>
-                        <p>You're about to purchase "{{ listing.title }}" for ${{ "%.2f"|format(listing.price) }}</p>
-                        <form method="POST" action="{{ url_for('create_transaction') }}">
-                            <input type="hidden" name="listing_id" value="{{ listing._id }}">
-                            <input type="hidden" name="seller_id" value="{{ listing.seller_id }}">
-                            <input type="hidden" name="price" value="{{ listing.price }}">
-                            
-                            <div class="form-group">
-                                <label for="meeting-method">Meeting Method</label>
-                                <select id="meeting-method" name="meeting_method" required>
-                                    <option value="pickup">Pickup</option>
-                                    <option value="delivery">Delivery</option>
-                                    <option value="public">Public Place</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="meeting-location">Meeting Location</label>
-                                <input type="text" id="meeting-location" name="meeting_location" 
-                                       placeholder="Where would you like to meet?" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="meeting-time">Preferred Meeting Time</label>
-                                <input type="datetime-local" id="meeting-time" name="meeting_time" required>
-                            </div>
-                            
-                            <div class="modal-actions">
-                                <button type="submit" class="btn btn-accent">Confirm Purchase</button>
-                                <button type="button" id="cancel-buy-now" class="btn btn-outline">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                <!-- Offer Modal (keep your existing offer modal) -->
-    
-    <!-- Offer Modal -->
-    <div class="modal-overlay" id="offer-modal">
-        <div class="modal-content">
-            <h2>Make an Offer</h2>
-            <form id="offer-form" method="POST" action="{{ url_for('create_transaction') }}">
-                <input type="hidden" name="listing_id" value="{{ listing._id }}">
-                <input type="hidden" name="seller_id" value="{{ listing.seller_id }}">
-                
-                <div class="form-group">
-                    <label for="offer-price">Your Offer Price ($)</label>
-                    <input type="number" id="offer-price" name="price" 
-                           min="0.01" step="0.01" value="{{ listing.price }}" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="meeting-method">Meeting Method</label>
-                    <select id="meeting-method" name="meeting_method" required>
-                        <option value="pickup">Pickup</option>
-                        <option value="delivery">Delivery</option>
-                        <option value="public">Public Place</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="meeting-location">Meeting Location</label>
-                    <input type="text" id="meeting-location" name="meeting_location" 
-                           placeholder="Where would you like to meet?" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="meeting-time">Preferred Meeting Time</label>
-                    <input type="datetime-local" id="meeting-time" name="meeting_time" required>
-                </div>
-                
-                <div class="modal-actions">
-                    <button type="submit" class="btn btn-accent">Submit Offer</button>
-                    <button type="button" id="cancel-offer" class="btn btn-outline">Cancel</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // Save/Unsave functionality
-        const saveBtn = document.getElementById('save-btn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', function() {
-                const listingId = this.getAttribute('data-listing-id');
-                const isLiked = this.classList.contains('liked');
-                
-                fetch('/save_listing/' + listingId, {
+<!-- Offer Modal -->
+<div class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="offer-modal">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Make an Offer</h2>
+        <form id="offer-form" method="POST" action="{{ url_for('create_transaction') }}" class="space-y-4">
+            <input type="hidden" name="listing_id" value="{{ listing._id }}">
+            <input type="hidden" name="seller_id" value="{{ listing.seller_id }}">
+            
+            <div>
+                <label for="offer-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Offer Price ($)</label>
+                <input type="number" 
+                       id="offer-price" 
+                       name="price" 
+                       min="0.01" 
+                       step="0.01" 
+                       value="{{ listing.price }}" 
+                       required
+                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+            </div>
+            
+            <div class="flex justify-end space-x-4 mt-6">
+                <button type="button" 
+                        id="cancel-offer" 
+                        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors">
+                    Submit Offer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const offerModal = document.getElementById('offer-modal');
+    const makeOfferBtn = document.getElementById('make-offer-btn');
+    const cancelOfferBtn = document.getElementById('cancel-offer');
+    const saveBtn = document.getElementById('save-btn');
+
+    if (makeOfferBtn) {
+        makeOfferBtn.addEventListener('click', () => {
+            offerModal.classList.remove('hidden');
+            offerModal.classList.add('flex');
+        });
+    }
+
+    if (cancelOfferBtn) {
+        cancelOfferBtn.addEventListener('click', () => {
+            offerModal.classList.add('hidden');
+            offerModal.classList.remove('flex');
+        });
+    }
+
+    offerModal.addEventListener('click', (e) => {
+        if (e.target === offerModal) {
+            offerModal.classList.add('hidden');
+            offerModal.classList.remove('flex');
+        }
+    });
+
+    if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch(`/save_listing/${saveBtn.dataset.listingId}`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'saved') {
-                        this.classList.add('liked');
-                        this.innerHTML = '❤️ Saved';
-                    } else {
-                        this.classList.remove('liked');
-                        this.innerHTML = '♡ Save';
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
-            });
-        }
-        
-        // Offer modal functionality
-        const offerModal = document.getElementById('offer-modal');
-        const makeOfferBtn = document.getElementById('make-offer-btn');
-        const cancelOfferBtn = document.getElementById('cancel-offer');
-        
-        if (makeOfferBtn) {
-            makeOfferBtn.addEventListener('click', function() {
-                offerModal.style.display = 'flex';
-            });
-        }
-        
-        if (cancelOfferBtn) {
-            cancelOfferBtn.addEventListener('click', function() {
-                offerModal.style.display = 'none';
-            });
-        }
-        
-        // Close modal when clicking outside
-        offerModal.addEventListener('click', function(e) {
-            if (e.target === offerModal) {
-                offerModal.style.display = 'none';
+                
+                const data = await response.json();
+                if (data.status === 'saved') {
+                    saveBtn.innerHTML = '❤️ Saved';
+                    saveBtn.classList.add('liked');
+                } else {
+                    saveBtn.innerHTML = '♡ Save';
+                    saveBtn.classList.remove('liked');
+                }
+            } catch (error) {
+                console.error('Error saving listing:', error);
             }
         });
-        // Buy Now functionality
-const buyNowBtn = document.getElementById('buy-now-btn');
-const buyNowModal = document.getElementById('buy-now-modal');
-const cancelBuyNowBtn = document.getElementById('cancel-buy-now');
-
-if (buyNowBtn) {
-    buyNowBtn.addEventListener('click', function() {
-        buyNowModal.style.display = 'flex';
-    });
-}
-
-if (cancelBuyNowBtn) {
-    cancelBuyNowBtn.addEventListener('click', function() {
-        buyNowModal.style.display = 'none';
-    });
-}
-
-buyNowModal.addEventListener('click', function(e) {
-    if (e.target === buyNowModal) {
-        buyNowModal.style.display = 'none';
     }
-});
-    </script>
-</body>
-</html>
+</script>
+{% endblock %}

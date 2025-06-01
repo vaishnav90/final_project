@@ -1,666 +1,139 @@
-<!DOCTYPE html>
-<html lang="en">
-    <style>
-        /* Mobile-specific styles */
-        @media (max-width: 768px) {
-            .nav-buttons {
-                display: flex;
-                gap: 16px;
-                align-items: center;
-            }
-            
-            .nav-buttons a {
-                text-decoration: none;
-                color: inherit;
-                font-size: 15px;
-                font-weight: 500;
-            }
-            
-            /* Completely remove button styling */
-            .nav-buttons .btn {
-                all: unset; /* This resets all button styles */
-                cursor: pointer;
-                white-space: nowrap;
-            }
-            
-        
-            
-            /* Mobile menu styling - clean and minimal */
-            .mobile-menu-links a {
-                display: block;
-                padding: 14px 20px;
-                text-decoration: none;
-                color: inherit;
-                font-size: 16px;
-                border-bottom: 1px solid rgba(0,0,0,0.05);
-                transition: background-color 0.2s;
-            }
-            
-            .mobile-menu-links a:hover {
-                background-color: rgba(0,0,0,0.03);
-            }
-            
-            /* Remove all button styling from mobile menu items */
-            .mobile-menu-links .btn {
-                all: unset;
-                display: block;
-                width: 100%;
-                padding: 14px 20px;
-                text-align: left;
-                cursor: pointer;
-                border-bottom: 1px solid rgba(0,0,0,0.05);
-            }
-            
-            /* Special styling only for logout */
-            .mobile-menu-links .btn-outline {
-                margin-top: 10px;
-                padding: 12px;
-                text-align: center;
-                border: 1px solid rgba(0,0,0,0.1);
-                border-radius: 6px;
-                background: transparent;
-                transition: all 0.2s;
-            }
-            
-            .mobile-menu-links .btn-outline:hover {
-                background: rgba(0,0,0,0.03);
-            }
-        }
-        
-        /* Rest of your styles remain unchanged */
-        .flash-messages {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 1000;
-        }
-        
-        .alert {
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            font-size: 14px;
-            max-width: 400px;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .card-img-photo {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 8px 8px 0 0;
-        }
-        
-        .like-btn.liked {
-            color: #e74c3c;
-        }
-        
-        .like-btn {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-    </style>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APP | San Ramon/Danville Secondhand Marketplace</title>
-    
-    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet" />
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
-            </div>
-            <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('listings') }}">Browse</a>
-                <a href="{{ url_for('how_it_works') }}">How It Works</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('messages') }}">Messages</a>
-                {% endif %}
-            </div>
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn" id="sell-btn">Sell Item</button>
-                </a>
-                    <a href="{{ url_for('liked_items') }}">
-                        <button class="btn">Saved</button>
-                    </a>
-                    {% if current_user.is_authenticated %}
-    <a href="{{ url_for('profile') }}">
-        <button class="btn">Profile</button>
-    </a>
-{% endif %}
-                    <a href="{{ url_for('logout') }}">
-                        <button class="btn">Logout</button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}">
-                        <button class="btn">Sign Up</button>
-                    </a>
-                    <a href="{{ url_for('login') }}">
-                        <button class="btn">Login</button>
-                    </a>
-                {% endif %}
-            </div>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            </div>
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Hero Section -->
+    <div class="text-center mb-16 animate-slide-up">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 font-display">
+           
+            <span class="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Hathor</span>
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            Buy and sell pre-loved clothing within your school community. Make fashion sustainable, one piece at a time.
+        </p>
+        {% if not current_user.is_authenticated %}
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{{ url_for('signup') }}" 
+               class="bg-primary text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-primary-dark transition-all transform hover:scale-105 hover:shadow-lg">
+                Join Now
+            </a>
+            <a href="{{ url_for('listings') }}" 
+               class="bg-white dark:bg-gray-800 text-primary dark:text-primary-light border-2 border-primary dark:border-primary-light px-8 py-3 rounded-lg text-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-all transform hover:scale-105 hover:shadow-lg">
+                Browse Items
+            </a>
+        </div>
         {% endif %}
-    {% endwith %}
-
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobile-menu">
-        <div class="mobile-menu-header">
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                Hathor 
-            </div>
-            <button class="close-modal" id="close-mobile-menu">&times;</button>
-        </div>
-        <div class="mobile-menu-links">
-            <a href="{{ url_for('home') }}">Home</a>
-            <a href="{{ url_for('listings') }}">Browse</a>
-            <a href="{{ url_for('how_it_works') }}">How It Works</a>
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('messages') }}">Messages</a>
-                <a href="{{ url_for('liked_items') }}">
-                    <button class="btn">Saved</button>
-                </a>
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn btn-accent">Sell Item</button>
-                </a>
-            {% endif %}
-        </div>
-    </div>
-    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
-    
-    <section class="hero">
-        <div class="hero-content animate-slide">
-            <h1>Buy and Sell Pre-loved Fashion in San Ramon & Danville</h1>
-            <p>Join our local community to find quality secondhand clothes and give your wardrobe items a second life.</p>
-            {% if not current_user.is_authenticated %}
-                <a href="{{ url_for('signup') }}">
-                    <button class="btn btn-accent" id="get-started-btn">Get Started</button>
-                </a>
-            {% else %}
-                <a href="{{ url_for('listings') }}">
-                    <button class="btn btn-accent">Browse Items</button>
-                </a>
-            {% endif %}
-        </div>
-    </section>
-    
-   <!-- <section class="featured-section">
-        <div class="main-container">
-            <div class="featured-container animate-fade">
-                <div class="neighborhood-selector">
-                    <form action="{{ url_for('listings') }}" method="GET">
-                        <select name="neighborhood" id="neighborhood-select">
-                            <option value="all">All Neighborhoods</option>
-                            <option value="sanramon-valley">San Ramon Valley</option>
-                            <option value="danville-downtown">Downtown Danville</option>
-                            <option value="windemere">Windemere</option>
-                            <option value="dougherty-valley">Dougherty Valley</option>
-                            <option value="blackhawk">Blackhawk</option>
-                            <option value="twin-creeks">Twin Creeks</option>
-                            <option value="crow-canyon">Crow Canyon</option>
-                        </select>
-                        <button type="submit" class="btn">Update Location</button>
-                    </form>
-                </div>
-                
-                <div class="categories">
-                    <div class="category active" data-category="all">All</div>
-                    <div class="category" data-category="womens">Women's</div>
-                    <div class="category" data-category="mens">Men's</div>
-                    <div class="category" data-category="childrens">Children's</div>
-                    <div class="category" data-category="accessories">Accessories</div>
-                    <div class="category" data-category="shoes">Shoes</div>
-                    <div class="category" data-category="activewear">Activewear</div>
-                    <div class="category" data-category="formal">Formal</div>
-                </div>
-            </div>
-        </div>
-    </section> -->
-    
-    <div class="main-container">
-        <section>
-            <div class="section-header">
-                <h2 class="section-title">Recent Listings</h2>
-                <div class="view-options">
-                    <a href="{{ url_for('listings') }}">
-                        <button class="btn btn-outline">View All</button>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="listings-grid">
-                {% for listing in recent_listings %}
-                <div class="listing-card animate-fade" data-listing-id="{{ listing._id }}">
-                    <div class="card-img">
-                        {% if current_user.is_authenticated %}
-                            <button class="like-btn" data-listing-id="{{ listing._id }}" data-liked="false" aria-label="Like Listing">❤️</button>
-                        {% endif %}
-                        {% if listing.images and listing.images|length > 0 %}
-                            <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" alt="{{ listing.title }}" class="card-img-photo">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='default-image.png') }}" alt="No image">
-                        {% endif %}
-                        <div class="card-badge">{{ listing.condition.title() }}</div>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">{{ listing.title }}</h3>
-                        <p class="card-price">${{ "%.2f"|format(listing.price) }}</p>
-                        <p class="card-location">
-                            <span class="material-icons">📍</span> 
-                            <span class="neighborhood-tag">{{ listing.neighborhood.replace('-', ' ').title() }}</span>
-                        </p>
-                        <div class="card-meta">
-                            <span>Size: {{ listing.size }}</span>
-                            <span>Posted: {{ listing.created_at.strftime('%b %d') }}</span>
-                        </div>
-                        <div class="card-actions">
-                            <a href="{{ url_for('listing_detail', listing_id=listing._id) }}">
-                                <button class="btn message-btn">View Details</button>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-                
-                {% if not recent_listings %}
-                <div style="text-align: center; grid-column: 1 / -1; padding: 2rem;">
-                    <p>No recent listings available. <a href="{{ url_for('sell') }}">Be the first to list an item!</a></p>
-                </div>
-                {% endif %}
-            </div>
-        </section>
-        
-        <section>
-            <div class="section-header">
-                <h2 class="section-title">High-end Finds</h2>
-                <div class="view-options">
-                    <a href="{{ url_for('listings', price_min=100) }}">
-                        <button class="btn btn-outline">View All</button>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="listings-grid">
-                {% for listing in high_end_listings %}
-                <div class="listing-card animate-fade">
-                    <div class="card-img">
-                        
-                        {% if current_user.is_authenticated %}
-                        <button class="like-btn{% if listing._id in liked_listing_ids %} liked{% endif %}" 
-                            data-listing-id="{{ listing._id }}" 
-                            aria-label="Like Listing">❤️</button>
-                        {% endif %}
-                        {% if listing.images and listing.images|length > 0 %}
-                            <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" alt="{{ listing.title }}">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='default-image.png') }}" alt="No image">
-                        {% endif %}
-                        <div class="card-badge">{{ listing.condition.title() }}</div>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">{{ listing.title }}</h3>
-                        <p class="card-price">${{ "%.2f"|format(listing.price) }}</p>
-                        <p class="card-location">
-                            <span class="material-icons">📍</span>
-                            <span class="neighborhood-tag">{{ listing.neighborhood.replace('-', ' ').title() }}</span>
-                        </p>
-                        <div class="card-meta">
-                            <span>Size: {{ listing.size }}</span>
-                            <span>Posted: {{ listing.created_at.strftime('%b %d') }}</span>
-                        </div>
-                        <div class="card-actions">
-                            <a href="{{ url_for('listing_detail', listing_id=listing._id) }}">
-                                <button class="btn message-btn">View Details</button>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-                
-                {% if not high_end_listings %}
-                <div style="text-align: center; grid-column: 1 / -1; padding: 2rem;">
-                    <p>No high-end listings available at the moment.</p>
-                </div>
-                {% endif %}
-            </div>
-        </section>
-
-        <!-- Popular Categories Section -->
-        <section>
-            <div class="section-header">
-                <h2 class="section-title">Popular Categories</h2>
-            </div>
-
-            <div class="categories-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem;">
-                {% for category in popular_categories %}
-                <div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
-                    <div style="height: 140px; background-color: #f8e9e2; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 2.5rem;">
-                            {% if category.name == 'womens' %}👚
-                            {% elif category.name == 'mens' %}👔
-                            {% elif category.name == 'shoes' %}👟
-                            {% elif category.name == 'accessories' %}👜
-                            {% elif category.name == 'childrens' %}👶
-                            {% else %}👕
-                            {% endif %}
-                        </span>
-                    </div>
-                    <div style="padding: 1.25rem;">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">{{ category.name.replace('_', ' ').title() }}</h3>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">{{ category.item_count or 0 }} items</p>
-                    </div>
-                </div>
-                {% endfor %}
-                
-                {% if not popular_categories %}
-                <!-- Default categories if none in database -->
-                <div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
-                    <div style="height: 140px; background-color: #f8e9e2; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 2.5rem;">👚</span>
-                    </div>
-                    <div style="padding: 1.25rem;">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Women's Clothing</h3>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">Coming Soon</p>
-                    </div>
-                </div>
-                
-                <div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
-                    <div style="height: 140px; background-color: #e2e9f8; display: flex; align-items: center; justify-content: center;">
-                        <span style="font-size: 2.5rem;">👔</span>
-                    </div>
-                    <div style="padding: 1.25rem;">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Men's Clothing</h3>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">Coming Soon</p>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </section>
-
-        <!-- How it works section -->
-        <section>
-            <div class="section-header">
-                <h2 class="section-title">How APP Works</h2>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin: 2rem 0;">
-                <div style="text-align: center;">
-                    <div style="background-color: var(--primary-light); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">1</div>
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-dark);">List Your Items</h3>
-                    <p style="color: var(--text-light);">Take photos and create a listing for your pre-loved clothing items in minutes.</p>
-                </div>
-
-                <div style="text-align: center;">
-                    <div style="background-color: var(--primary-light); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">2</div>
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-dark);">Connect Locally</h3>
-                    <p style="color: var(--text-light);">Chat with buyers or sellers in your neighborhood through our secure messaging system.</p>
-                </div>
-
-                <div style="text-align: center;">
-                    <div style="background-color: var(--primary-light); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">3</div>
-                    <h3 style="margin-bottom: 1rem; color: var(--primary-dark);">Meet & Exchange</h3>
-                    <p style="color: var(--text-light);">Arrange a safe local meetup to complete your transaction and give clothes a second life.</p>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 2rem;">
-                <a href="{{ url_for('how_it_works') }}">
-                    <button class="btn btn-accent">Learn More</button>
-                </a>
-            </div>
-        </section>
     </div>
 
-    <!-- Newsletter signup section -->
-    <section style="background-color: var(--primary-light); padding: 4rem 2rem; text-align: center; margin-top: 3rem;">
-        <div style="max-width: 600px; margin: 0 auto;">
-            <h2 style="color: var(--primary-dark); margin-bottom: 1rem;">Join Our Community</h2>
-            <p style="color: var(--text-light); margin-bottom: 2rem;">Sign up for our newsletter to stay updated on new listings, sustainable fashion tips, and community events.</p>
-
-            <form style="display: flex; gap: 0.5rem; max-width: 500px; margin: 0 auto;">
-                <input type="email" placeholder="Your email address" style="flex: 1; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 1rem;">
-                <button type="submit" class="btn">Subscribe</button>
-            </form>
+    <!-- Quick Actions -->
+    <div class="mb-12 animate-fade-in">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{{ url_for('listings') }}" 
+               class="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 backdrop-blur-sm rounded-xl p-6 text-center hover:shadow-lg transition-all transform hover:scale-105 group">
+                <i class="fas fa-search text-2xl text-primary dark:text-primary-light mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors">Browse All</h3>
+            </a>
+            <a href="{{ url_for('sell') }}" 
+               class="bg-gradient-to-br from-accent/10 to-accent/5 dark:from-accent/20 dark:to-accent/10 backdrop-blur-sm rounded-xl p-6 text-center hover:shadow-lg transition-all transform hover:scale-105 group">
+                <i class="fas fa-plus text-2xl text-accent dark:text-accent-light mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-accent dark:group-hover:text-accent-light transition-colors">Sell Item</h3>
+            </a>
+            <a href="{{ url_for('liked_items') }}" 
+               class="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 backdrop-blur-sm rounded-xl p-6 text-center hover:shadow-lg transition-all transform hover:scale-105 group">
+                <i class="fas fa-heart text-2xl text-primary dark:text-primary-light mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors">Saved</h3>
+            </a>
+            <a href="{{ url_for('messages') }}" 
+               class="bg-gradient-to-br from-accent/10 to-accent/5 dark:from-accent/20 dark:to-accent/10 backdrop-blur-sm rounded-xl p-6 text-center hover:shadow-lg transition-all transform hover:scale-105 group">
+                <i class="fas fa-envelope text-2xl text-accent dark:text-accent-light mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-accent dark:group-hover:text-accent-light transition-colors">Messages</h3>
+            </a>
         </div>
-    </section>
+    </div>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>APP</h3>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">Your local marketplace for pre-loved fashion in San Ramon and Danville.</p>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <a href="#" style="color: white; font-size: 1.2rem;">📱</a>
-                    <a href="#" style="color: white; font-size: 1.2rem;">📘</a>
-                    <a href="#" style="color: white; font-size: 1.2rem;">📸</a>
-                    <a href="#" style="color: white; font-size: 1.2rem;">🐦</a>
-                </div>
+    <!-- Latest Posts -->
+    <div class="mb-16 animate-fade-in" style="animation-delay: 0.2s">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white font-display">Latest Posts</h2>
+            <a href="{{ url_for('listings') }}" 
+               class="text-primary dark:text-primary-light hover:text-primary-dark dark:hover:text-primary-light/80 font-medium transition-colors">
+                View All →
+            </a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for listing in featured_listings %}
+            <div class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-102">
+                <a href="{{ url_for('listing_detail', listing_id=listing._id) }}" class="block">
+                    {% if listing.images %}
+                    <div class="aspect-w-1 aspect-h-1 bg-gray-200 dark:bg-gray-700">
+                        <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                             alt="{{ listing.title }}"
+                             class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    </div>
+                    {% else %}
+                    <div class="aspect-w-1 aspect-h-1 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <span class="text-gray-400 dark:text-gray-500">No image</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light rounded-full text-sm font-medium">
+                                {{ listing.category }}
+                            </span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ listing.created_at|timeago }}</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-primary dark:group-hover:text-primary-light transition-colors">{{ listing.title }}</h3>
+                        <p class="text-xl font-bold text-primary dark:text-primary-light mb-2">${{ "%.2f"|format(listing.price) }}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">{{ listing.neighborhood }}</span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">{{ listing.condition }}</span>
+                        </div>
+                    </div>
+                </a>
             </div>
+            {% endfor %}
+        </div>
+    </div>
 
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul class="footer-links">
-                    <li><a href="{{ url_for('home') }}">Home</a></li>
-                    <li><a href="{{ url_for('listings') }}">Browse Items</a></li>
-                    <li><a href="{{ url_for('sell') }}">Sell Items</a></li>
-                    <li><a href="{{ url_for('how_it_works') }}">How It Works</a></li>
-                </ul>
+    <!-- Categories -->
+    {% if popular_categories %}
+    <div class="mb-16 animate-fade-in" style="animation-delay: 0.4s">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 font-display">Browse Categories</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {% for category in popular_categories %}
+            <a href="{{ url_for('listings', category=category.name) }}" 
+               class="group bg-white dark:bg-gray-800 rounded-xl p-6 text-center hover:shadow-xl transition-all transform hover:scale-105">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors">{{ category.display_name }}</h3>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- How It Works -->
+    <div class="animate-fade-in" style="animation-delay: 0.6s">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 font-display">How It Works</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="group bg-white dark:bg-gray-800 rounded-xl p-6 text-center transform hover:scale-105 transition-all hover:shadow-xl">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light text-2xl mb-4 group-hover:scale-110 transition-transform">1</div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-primary dark:group-hover:text-primary-light transition-colors">List Your Items</h3>
+                <p class="text-gray-600 dark:text-gray-400">Take photos and list your pre-loved clothing items in minutes.</p>
             </div>
-
-            <div class="footer-section">
-                <h3>Categories</h3>
-                <ul class="footer-links">
-                    <li><a href="{{ url_for('listings', category='womens') }}">Women's Clothing</a></li>
-                    <li><a href="{{ url_for('listings', category='mens') }}">Men's Clothing</a></li>
-                    <li><a href="{{ url_for('listings', category='shoes') }}">Shoes & Accessories</a></li>
-                    <li><a href="{{ url_for('listings', category='childrens') }}">Children's</a></li>
-                    <li><a href="{{ url_for('listings', category='activewear') }}">Activewear</a></li>
-                </ul>
+            <div class="group bg-white dark:bg-gray-800 rounded-xl p-6 text-center transform hover:scale-105 transition-all hover:shadow-xl">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light text-2xl mb-4 group-hover:scale-110 transition-transform">2</div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-primary dark:group-hover:text-primary-light transition-colors">Connect</h3>
+                <p class="text-gray-600 dark:text-gray-400">Chat with buyers and sellers from your school community.</p>
             </div>
-
-            <div class="footer-section">
-                <h3>Contact Us</h3>
-                <ul class="footer-links">
-                    <li><a href="mailto:vaishnavanand90@gmail.com">vaishnavanand90@gmail.com</a></li>
-                    <li><a href="mailto:asherburdeny@gmail.com">asherburdeny@gmail.com</a></li>
-                    <li style="color: rgba(255, 255, 255, 0.7);">San Ramon & Danville, CA</li>
-                </ul>
+            <div class="group bg-white dark:bg-gray-800 rounded-xl p-6 text-center transform hover:scale-105 transition-all hover:shadow-xl">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light text-2xl mb-4 group-hover:scale-110 transition-transform">3</div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-primary dark:group-hover:text-primary-light transition-colors">Meet & Exchange</h3>
+                <p class="text-gray-600 dark:text-gray-400">Meet on campus for a safe and convenient exchange.</p>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="footer-bottom">
-            <p>&copy; 2025 APP. All rights reserved.</p>
-            <p style="margin-top: 0.5rem;">
-                <a href="#" style="color: rgba(255, 255, 255, 0.6); margin-right: 1rem;">Privacy Policy</a>
-                <a href="#" style="color: rgba(255, 255, 255, 0.6); margin-right: 1rem;">Terms of Service</a>
-                <a href="#" style="color: rgba(255, 255, 255, 0.6);">Community Guidelines</a>
-            </p>
-        </div>
-    </footer>
-
-    <!-- JavaScript for interactivity -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Mobile menu toggle
-        document.getElementById('mobile-menu-toggle').addEventListener('click', function() {
-            document.getElementById('mobile-menu').classList.add('active');
-            document.getElementById('mobile-menu-overlay').style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        });
-
-        // Close mobile menu
-        document.getElementById('close-mobile-menu').addEventListener('click', function() {
-            document.getElementById('mobile-menu').classList.remove('active');
-            document.getElementById('mobile-menu-overlay').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        });
-
-        document.getElementById('mobile-menu-overlay').addEventListener('click', function() {
-            document.getElementById('mobile-menu').classList.remove('active');
-            document.getElementById('mobile-menu-overlay').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        });
-
-    // Category selection
-    const categories = document.querySelectorAll('.category');
-    categories.forEach(function(category) {
-        category.addEventListener('click', function() {
-            const categoryValue = this.getAttribute('data-category');
-            if (categoryValue === 'all') {
-                window.location.href = '{{ url_for("listings") }}';
-            } else {
-                window.location.href = '{{ url_for("listings") }}?category=' + categoryValue;
-            }
-        });
-    });
-
-    // Like functionality
-    const isAuthenticated = "{{ 'true' if current_user.is_authenticated else 'false' }}";
-    if (isAuthenticated === "true") {
-        const likeButtons = document.querySelectorAll('.like-btn');
-        likeButtons.forEach(function(button) {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const card = button.closest('.listing-card');
-                const listingId = card.getAttribute('data-listing-id'); // <-- Get the real MongoDB ID!
-                const title = card.querySelector('.card-title').textContent;
-                const price = card.querySelector('.card-price').textContent.replace('$', '');
-                const image = card.querySelector('img.card-img-photo');
-                let imageId = null;
-                if (image && image.src.includes('/image/')) {
-                    imageId = image.src.split('/image/')[1];
-                }
-                const location = card.querySelector('.neighborhood-tag').textContent;
-                const condition = card.querySelector('.card-badge').textContent;
-                const size = card.querySelector('.card-meta span') ? card.querySelector('.card-meta span').textContent.replace('Size: ', '') : '';
-
-                let likedItems = JSON.parse(localStorage.getItem('likedItems')) || [];
-                // Prevent duplicates by _id
-                if (!likedItems.some(item => item._id === listingId)) {
-                    likedItems.push({
-                        _id: listingId, // <-- Save the real MongoDB ID!
-                        title: title,
-                        price: price,
-                        images: imageId ? [imageId] : [],
-                        location: location,
-                        condition: condition,
-                        size: size
-                    });
-                    localStorage.setItem('likedItems', JSON.stringify(likedItems));
-                }
-                // Toggle liked class visually
-                button.classList.toggle('liked');
-            });
-        });
-    }
-
-
-        // Add animation for category cards
-        const categoryCards = document.querySelectorAll('.category-card');
-        categoryCards.forEach(function(card) {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-            });
-    
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-    });
-    </script>
-
-    <style>
-        .flash-messages {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 1000;
-        }
-        
-        .alert {
-            padding: 12px 20px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            font-size: 14px;
-            max-width: 400px;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .card-img-photo {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 8px 8px 0 0;
-        }
-        
-        .like-btn.liked {
-            color: #e74c3c;
-        }
-        
-        .like-btn {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-    </style>
-</body>
-</html>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}

@@ -1,368 +1,379 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages | APP</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet">
-    <style>
-        .messages-container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        
-        .conversation-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .conversation-card:hover {
-            transform: translateY(-2px);
-        }
-        
-        .conversation-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            align-items: center;
-        }
-        
-        .conversation-user {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #333;
-        }
-        
-        .conversation-time {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .last-message {
-            color: #444;
-            margin-bottom: 1rem;
-        }
-        
-        .listing-preview {
-            display: flex;
-            align-items: center;
-            margin: 1rem 0;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        
-        .listing-preview img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-right: 1rem;
-        }
-        
-        .listing-info {
-            flex: 1;
-        }
-        
-        .listing-title {
-            font-weight: bold;
-            margin-bottom: 0.25rem;
-        }
-        
-        .listing-price {
-            color: #2a9d8f;
-            font-weight: bold;
-        }
-        
-        /* Offer status styles */
-        .offer-section {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #ddd;
-        }
-        
-        .offer-status {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-        
-        .status-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        .status-pending { background-color: #fff3cd; color: #856404; }
-        .status-accepted { background-color: #d4edda; color: #155724; }
-        .status-declined { background-color: #f8d7da; color: #721c24; }
-        .status-countered { background-color: #cce5ff; color: #004085; }
-        .status-completed { background-color: #e2e3e5; color: #383d41; }
-        
-        /* Action buttons */
-        .offer-actions {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-        
-        .btn-accent {
-            background-color: #2a9d8f;
-            color: white;
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid #2a9d8f;
-            color: #2a9d8f;
-        }
-        
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        
-        .offer-price {
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .counter-input {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-width: 100px;
-        }
-        
-        .no-messages {
-            text-align: center;
-            padding: 3rem;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
-            </div>
-            <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('listings') }}">Browse</a>
-                <a href="{{ url_for('how_it_works') }}">How It Works</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('messages') }}">Messages</a>
-                {% endif %}
-            </div>
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn" id="sell-btn">Sell Item</button>
-                </a>
-                    <a href="{{ url_for('liked_items') }}">
-                        <button class="btn">Saved</button>
-                    </a>
-                    <a href="{{ url_for('logout') }}">
-                        <button class="btn">Logout</button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}">
-                        <button class="btn">Sign Up</button>
-                    </a>
-                    <a href="{{ url_for('login') }}">
-                        <button class="btn">Login</button>
-                    </a>
-                {% endif %}
-            </div>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <main class="messages-container">
-        <h1>Your Messages</h1>
-        
-        {% if not conversations %}
-            <div class="no-messages">
-                <p>📬 No messages yet</p>
-                <p>Start browsing listings and make offers to begin conversations!</p>
-                <a href="{{ url_for('home') }}" class="btn btn-accent">Browse Listings</a>
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex h-[calc(100vh-12rem)] bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <!-- Conversations Sidebar -->
+        <div class="w-1/3 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Messages</h2>
+                <div class="mt-2 flex gap-2">
+                    <button id="show-selling" class="text-sm px-3 py-1 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light">
+                        Selling
+                    </button>
+                    <button id="show-buying" class="text-sm px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        Buying
+                    </button>
+                </div>
             </div>
-        {% else %}
-            {% for data in conversations %}
-                <div class="conversation-card" onclick="openConversation('{{ data.conversation._id }}')">
-                    <div class="conversation-header">
-                        <span class="conversation-user">{{ data.other_user.username }}</span>
-                        <span class="conversation-time">
-                            {{ data.conversation.last_message.strftime('%b %d, %I:%M %p') }}
-                        </span>
+            
+            <div class="overflow-y-auto flex-1">
+                <!-- Selling Conversations -->
+                <div id="selling-conversations">
+                    <div class="p-2 bg-gray-50 dark:bg-gray-700/50">
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Your Listings</h3>
                     </div>
-                    
-                    <div class="last-message">
-                        {% if data.conversation.messages[-1].get('is_offer') %}
-                            <strong>💰 Offer:</strong> {{ data.conversation.messages[-1].content }}
-                        {% elif data.conversation.messages[-1].get('is_system') %}
-                            <strong>🔔</strong> {{ data.conversation.messages[-1].content }}
-                        {% else %}
-                            {{ data.conversation.messages[-1].content|truncate(100) }}
+                    {% for data in conversations %}
+                        {% if data.listing and data.listing.seller_id == current_user.id %}
+                            <a href="{{ url_for('conversation', conversation_id=data.conversation._id) }}" 
+                               class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors {% if conversation and conversation._id == data.conversation._id %}bg-primary/5 dark:bg-primary/10{% endif %}">
+                                <div class="flex items-center space-x-3">
+                                    <!-- Listing Image -->
+                                    {% if data.listing.images and data.listing.images|length > 0 %}
+                                        <img src="{{ url_for('get_image', image_id=data.listing.images[0]) }}" 
+                                             alt="{{ data.listing.title }}"
+                                             class="w-12 h-12 object-cover rounded-lg">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400 dark:text-gray-500"></i>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex justify-between items-start">
+                                            <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ data.listing.title }}</h3>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ data.conversation.messages[-1].sent_at.strftime('%I:%M %p') if data.conversation.messages else '' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs px-2 py-0.5 rounded-full 
+                                                {% if data.listing.status == 'available' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                {% elif data.listing.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                                {% else %}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200{% endif %}">
+                                                {{ data.listing.status.title() }}
+                                            </span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                                {{ data.other_user.username }}
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                            {% if data.conversation.messages %}
+                                                {% if data.conversation.messages[-1].sender_id == current_user.id %}
+                                                    You: {{ data.conversation.messages[-1].content }}
+                                                {% else %}
+                                                    {{ data.conversation.messages[-1].content }}
+                                                {% endif %}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Buying Conversations -->
+                <div id="buying-conversations" class="hidden">
+                    <div class="p-2 bg-gray-50 dark:bg-gray-700/50">
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Items You're Interested In</h3>
+                    </div>
+                    {% for data in conversations %}
+                        {% if data.listing and data.listing.seller_id != current_user.id %}
+                            <a href="{{ url_for('conversation', conversation_id=data.conversation._id) }}" 
+                               class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors {% if conversation and conversation._id == data.conversation._id %}bg-primary/5 dark:bg-primary/10{% endif %}">
+                                <div class="flex items-center space-x-3">
+                                    <!-- Listing Image -->
+                                    {% if data.listing.images and data.listing.images|length > 0 %}
+                                        <img src="{{ url_for('get_image', image_id=data.listing.images[0]) }}" 
+                                             alt="{{ data.listing.title }}"
+                                             class="w-12 h-12 object-cover rounded-lg">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400 dark:text-gray-500"></i>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex justify-between items-start">
+                                            <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ data.listing.title }}</h3>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ data.conversation.messages[-1].sent_at.strftime('%I:%M %p') if data.conversation.messages else '' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs px-2 py-0.5 rounded-full 
+                                                {% if data.listing.status == 'available' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                {% elif data.listing.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                                {% else %}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200{% endif %}">
+                                                {{ data.listing.status.title() }}
+                                            </span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                                {{ data.other_user.username }}
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                            {% if data.conversation.messages %}
+                                                {% if data.conversation.messages[-1].sender_id == current_user.id %}
+                                                    You: {{ data.conversation.messages[-1].content }}
+                                                {% else %}
+                                                    {{ data.conversation.messages[-1].content }}
+                                                {% endif %}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col">
+            {% if conversation %}
+                <!-- Chat Header -->
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center text-primary dark:text-primary-light font-semibold">
+                                {{ other_user.username|first|upper }}
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900 dark:text-white">{{ other_user.username }}</h3>
+                                {% if listing %}
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        Discussing: {{ listing.title }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if listing %}
+                            <a href="{{ url_for('listing_detail', listing_id=listing._id) }}" 
+                               class="text-primary dark:text-primary-light hover:text-primary-dark dark:hover:text-primary-light/80">
+                                View Listing
+                            </a>
                         {% endif %}
                     </div>
-                    
-                    {% if data.listing %}
-                        <div class="listing-preview">
-                            {% if data.listing.images and data.listing.images|length > 0 %}
-                                <img src="{{ url_for('get_image', image_id=data.listing.images[0]) }}" alt="{{ data.listing.title }}">
-                            {% else %}
-                                <div style="width: 80px; height: 80px; background: #eee; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 24px;">
-                                    📷
-                                </div>
-                            {% endif %}
-                            <div class="listing-info">
-                                <div class="listing-title">{{ data.listing.title }}</div>
-                                <div class="listing-price">${{ "%.2f"|format(data.listing.price) }}</div>
+
+                    {% if listing %}
+                        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div class="flex items-center space-x-4">
+                                {% if listing.images and listing.images|length > 0 %}
+                                    <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                                         alt="{{ listing.title }}"
+                                         class="w-16 h-16 object-cover rounded-lg">
+                                {% endif %}
                                 <div>
-                                    <strong>Status:</strong> 
-                                    <span class="status-badge status-{{ data.listing.status }}">
-                                        {{ data.listing.status.title() }}
-                                    </span>
+                                    <h3 class="font-medium text-gray-900 dark:text-white">{{ listing.title }}</h3>
+                                    <p class="text-primary dark:text-primary-light font-bold">${{ "%.2f"|format(listing.price) }}</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-xs px-2 py-0.5 rounded-full 
+                                            {% if listing.status == 'available' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                            {% elif listing.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                            {% else %}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200{% endif %}">
+                                            {{ listing.status.title() }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     {% endif %}
-                    
-                    <!-- Active Offers Section -->
-                    {% if data.transactions %}
-                        {% for transaction in data.transactions %}
-                            <div class="offer-section status-{{ transaction.status }}">
-                                <div class="offer-details">
-                                    <div class="price-info">
-                                        <div>
-                                            <strong>Offer:</strong> 
-                                            <span class="offer-price">${{ "%.2f"|format(transaction.price) }}</span>
-                                        </div>
-                                        {% if transaction.status == 'countered' and transaction.counter_price %}
-                                            <div>
-                                                <span class="original-price">${{ "%.2f"|format(transaction.price) }}</span>
-                                                <span class="offer-price">Counter: ${{ "%.2f"|format(transaction.counter_price) }}</span>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <span class="status-badge status-{{ transaction.status }}">
-                                        {% if transaction.status == 'pending' %}⏳ Pending
-                                        {% elif transaction.status == 'accepted' %}✅ Accepted
-                                        {% elif transaction.status == 'declined' %}❌ Declined
-                                        {% elif transaction.status == 'countered' %}💰 Countered
-                                        {% elif transaction.status == 'completed' %}🎉 Completed
-                                        {% endif %}
-                                    </span>
-                                </div>
-                                
-                                <!-- Seller Actions for Pending Offers -->
-                                {% if transaction.status == 'pending' and transaction.seller_id == current_user.id %}
-                                    <div class="offer-actions" onclick="event.stopPropagation()">
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
-                                              onsubmit="return handleOfferSubmit(this, 'accept')" style="display: inline;">
-                                            <input type="hidden" name="action" value="accept">
-                                            <button type="submit" class="btn btn-accent">
-                                                ✅ Accept
-                                            </button>
-                                        </form>
-                                        
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
-                                              onsubmit="return handleOfferSubmit(this, 'decline')" style="display: inline;">
-                                            <input type="hidden" name="action" value="decline">
-                                            <button type="submit" class="btn btn-outline">
-                                                ❌ Decline
-                                            </button>
-                                        </form>
-                                        
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
-                                              onsubmit="return handleOfferSubmit(this, 'counter')" style="display: inline;">
-                                            <div class="counter-form">
-                                                <input type="hidden" name="action" value="counter">
-                                                <input type="number" name="counter_price" class="counter-input" 
-                                                       value="{{ transaction.price }}" min="0.01" step="0.01" required
-                                                       placeholder="Counter price">
-                                                <button type="submit" class="btn btn-counter">
-                                                    💰 Counter
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                
-                                <!-- Buyer Actions for Countered Offers -->
-                                {% elif transaction.status == 'countered' and transaction.buyer_id == current_user.id %}
-                                    <div class="offer-actions" onclick="event.stopPropagation()">
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
-                                              onsubmit="return handleOfferSubmit(this, 'accept')" style="display: inline;">
-                                            <input type="hidden" name="action" value="accept">
-                                            <button type="submit" class="btn btn-accent">
-                                                ✅ Accept Counter (${{"%.2f"|format(transaction.counter_price)}})
-                                            </button>
-                                        </form>
-                                        
-                                        <form method="POST" action="{{ url_for('handle_offer', transaction_id=transaction._id) }}" 
-                                              onsubmit="return handleOfferSubmit(this, 'decline')" style="display: inline;">
-                                            <input type="hidden" name="action" value="decline">
-                                            <button type="submit" class="btn btn-outline">
-                                                ❌ Decline Counter
-                                            </button>
-                                        </form>
-                                    </div>
-                                
-                                <!-- Complete Transaction Button for Accepted Offers -->
-                                {% elif transaction.status == 'accepted' and transaction.seller_id == current_user.id %}
-                                    <div class="offer-actions" onclick="event.stopPropagation()">
-                                        <form method="POST" action="{{ url_for('complete_transaction', transaction_id=transaction._id) }}" 
-                                              onsubmit="return handleOfferSubmit(this, 'complete')">
-                                            <button type="submit" class="btn btn-accent">
-                                                🎉 Mark as Completed
-                                            </button>
-                                        </form>
-                                    </div>
-                                
-                                <!-- Show final price for completed transactions -->
-                                {% elif transaction.status == 'completed' %}
-                                    <div style="margin-top: 0.5rem; color: #28a745; font-weight: bold;">
-                                        🎉 Final Price: ${{ "%.2f"|format(transaction.get('final_price', transaction.get('counter_price', transaction.price))) }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
                 </div>
-            {% endfor %}
-        {% endif %}
-    </main>
 
-    <script>
-        // Prevent offer actions from navigating to conversation
-        document.querySelectorAll('.offer-actions, .offer-actions button, .offer-actions input').forEach(element => {
-            element.addEventListener('click', function(e) {
-                e.stopPropagation();
+                <!-- Messages -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container">
+                    {% for message in conversation.messages %}
+                        <div class="flex {% if message.sender_id == current_user.id %}justify-end{% endif %}">
+                            <div class="max-w-[70%] {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white{% endif %} rounded-lg px-4 py-2 shadow-sm">
+                                <p>{{ message.content }}</p>
+                                <p class="text-xs {% if message.sender_id == current_user.id %}text-white/80{% else %}text-gray-500 dark:text-gray-400{% endif %} mt-1">
+                                    {{ message.sent_at.strftime('%I:%M %p') }}
+                                </p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Message Input -->
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <form id="message-form" class="flex space-x-4">
+                        <input type="hidden" name="listing_id" value="{{ listing._id if listing else '' }}">
+                        <input type="hidden" name="recipient_id" value="{{ other_user._id }}">
+                        <input type="text" 
+                               name="content" 
+                               id="message-input"
+                               placeholder="Type your message..."
+                               class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <button type="submit" 
+                                class="bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            Send
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="flex-1 flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-comments text-2xl text-primary dark:text-primary-light"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No Conversation Selected</h3>
+                        <p class="text-gray-500 dark:text-gray-400">Choose a conversation from the sidebar to start chatting</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    // Toggle between selling and buying conversations
+    const showSellingBtn = document.getElementById('show-selling');
+    const showBuyingBtn = document.getElementById('show-buying');
+    const sellingConversations = document.getElementById('selling-conversations');
+    const buyingConversations = document.getElementById('buying-conversations');
+
+    showSellingBtn.addEventListener('click', () => {
+        sellingConversations.classList.remove('hidden');
+        buyingConversations.classList.add('hidden');
+        showSellingBtn.classList.add('bg-primary/10', 'dark:bg-primary/20', 'text-primary', 'dark:text-primary-light');
+        showSellingBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+        showBuyingBtn.classList.remove('bg-primary/10', 'dark:bg-primary/20', 'text-primary', 'dark:text-primary-light');
+        showBuyingBtn.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+    });
+
+    showBuyingBtn.addEventListener('click', () => {
+        sellingConversations.classList.add('hidden');
+        buyingConversations.classList.remove('hidden');
+        showBuyingBtn.classList.add('bg-primary/10', 'dark:bg-primary/20', 'text-primary', 'dark:text-primary-light');
+        showBuyingBtn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+        showSellingBtn.classList.remove('bg-primary/10', 'dark:bg-primary/20', 'text-primary', 'dark:text-primary-light');
+        showSellingBtn.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const socket = io();
+        const messagesContainer = document.getElementById('messages-container');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        
+        {% if conversation %}
+            // Join the conversation room
+            socket.emit('join_conversation', {
+                conversation_id: '{{ conversation._id }}'
             });
-        });
-    </script>
-</body>
-</html>
+            
+            // Scroll to bottom of messages
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Handle form submission
+            messageForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const content = messageInput.value.trim();
+                if (!content) return;
+                
+                try {
+                    const response = await fetch('{{ url_for("send_message") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new URLSearchParams({
+                            listing_id: '{{ listing._id if listing else "" }}',
+                            recipient_id: '{{ other_user._id }}',
+                            content: content
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        messageInput.value = '';
+                        messageInput.focus();
+                        
+                        // Emit new_message event
+                        socket.emit('new_message', {
+                            conversation_id: '{{ conversation._id }}',
+                            sender_id: '{{ current_user.id }}',
+                            content: content,
+                            sent_at: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                }
+            });
+            
+            // Handle incoming messages
+            socket.on('new_message', function(data) {
+                const isCurrentUser = data.sender_id === '{{ current_user.id }}';
+                const messageHTML = `
+                    <div class="flex ${isCurrentUser ? 'justify-end' : ''}">
+                        <div class="max-w-[70%] ${isCurrentUser ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'} rounded-lg px-4 py-2 shadow-sm">
+                            <p>${data.content}</p>
+                            <p class="text-xs ${isCurrentUser ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'} mt-1">
+                                ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            });
+            
+            // Handle typing indicators
+            let typingTimeout;
+            messageInput.addEventListener('input', function() {
+                socket.emit('typing', {
+                    conversation_id: '{{ conversation._id }}',
+                    recipient_id: '{{ other_user._id }}'
+                });
+                
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    socket.emit('stop_typing', {
+                        conversation_id: '{{ conversation._id }}',
+                        recipient_id: '{{ other_user._id }}'
+                    });
+                }, 1000);
+            });
+            
+            socket.on('typing', function(data) {
+                if (data.sender_id === '{{ other_user._id }}') {
+                    // Show typing indicator
+                    const typingIndicator = document.getElementById('typing-indicator');
+                    if (!typingIndicator) {
+                        const indicatorHTML = `
+                            <div id="typing-indicator" class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 animate-pulse">
+                                <span>{{ other_user.username }} is typing</span>
+                                <div class="flex space-x-1">
+                                    <div class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
+                                    <div class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
+                                    <div class="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        `;
+                        messagesContainer.insertAdjacentHTML('beforeend', indicatorHTML);
+                    }
+                }
+            });
+            
+            socket.on('stop_typing', function(data) {
+                if (data.sender_id === '{{ other_user._id }}') {
+                    // Remove typing indicator
+                    const typingIndicator = document.getElementById('typing-indicator');
+                    if (typingIndicator) {
+                        typingIndicator.remove();
+                    }
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}
