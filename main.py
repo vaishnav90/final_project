@@ -12,14 +12,55 @@ from flask import send_file
 from io import BytesIO
 from bson import ObjectId
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Change this to a secure secret key
-socketio = SocketIO(app, cors_allowed_origins="*")
 
-client = MongoClient('mongodb+srv://vaishnavanand:vannd0108@cluster0.clkkf3n.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
-db = client['rethread']
+# Get the production URL from environment variable or default to localhost
+PRODUCTION_URL = os.getenv('PRODUCTION_URL', 'http://localhost:5000')
+ALLOWED_ORIGINS = [PRODUCTION_URL, 'http://localhost:5000', 'http://127.0.0.1:5000']
 
+# Configure CORS
+CORS(app, resources={
+    r"/*": {
+        "origins": ALLOWED_ORIGINS,
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+        "supports_credentials": True
+    }
+})
+
+# Add CORS headers to all responses
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    if origin in ALLOWED_ORIGINS:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
+# Use environment variables for configuration
+app.secret_key = os.getenv('SECRET_KEY', 'default-secret-key-for-development')
+socketio = SocketIO(app, cors_allowed_origins=ALLOWED_ORIGINS)
+
+# MongoDB connection with error handling
+try:
+    MONGO_URI = os.getenv('MONGO_URI', 'mongodb+srv://vaishnavanand:vannd0108@cluster0.clkkf3n.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+    client = MongoClient(MONGO_URI)
+    # Test the connection
+    client.admin.command('ping')
+    db = client['rethread']
+except Exception as e:
+    print(f"Failed to connect to MongoDB: {e}")
+    raise
+
+# Collections
 users_collection = db['users']
 listings_collection = db['listings']
 messages_collection = db['messages']
@@ -32,13 +73,15 @@ images_collection = db['images']
 offers_collection = db['offers']
 flags_collection = db['flags']
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'vaishnavanand90@gmail.com'
-app.config['MAIL_PASSWORD'] = 'your-app-password'  # You'll need to replace this with an App Password from Google Account settings
-app.config['MAIL_DEFAULT_SENDER'] = 'vaishnavanand90@gmail.com'
+# Email configuration
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', '587'))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', 'vaishnavanand90@gmail.com')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'vaishnavanand90@gmail.com')
 
+# Initialize extensions
 messages_collection.create_index([('participants', 1)])
 messages_collection.create_index([('listing_id', 1)])
 mail = Mail(app)
@@ -46,7 +89,8 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-UPLOAD_FOLDER = 'static/uploads'
+# File upload configuration
+UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'static/uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -105,8 +149,17 @@ def initialize_neighborhoods():
 initialize_categories()
 initialize_neighborhoods()
 
+@app.route('/welcome')
+def landing():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    return render_template('landing.html')
+
 @app.route('/')
 def home():
+    if not current_user.is_authenticated:
+        return redirect(url_for('landing'))
+        
     user_school = None
     if current_user.is_authenticated:
         user_school = current_user.user_data.get('profile', {}).get('school', None)
@@ -1589,4 +1642,12 @@ def flag_status(listing_id):
         }), 500
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    # Use environment variables for host and port
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_ENV', 'production') == 'development'
+    
+    socketio.run(app, 
+                host='0.0.0.0',
+                port=port,
+                debug=debug,
+                allow_unsafe_werkzeug=True)

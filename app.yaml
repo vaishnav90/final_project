@@ -1,5 +1,17 @@
 runtime: python39
 
+env_variables:
+  FLASK_ENV: "production"
+  SECRET_KEY: "your-secure-secret-key-here"
+  MONGO_URI: "mongodb+srv://vaishnavanand:vannd0108@cluster0.clkkf3n.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+  MAIL_SERVER: "smtp.gmail.com"
+  MAIL_PORT: "587"
+  MAIL_USE_TLS: "True"
+  MAIL_USERNAME: "vaishnavanand90@gmail.com"
+  MAIL_PASSWORD: "your-app-password"
+  MAIL_DEFAULT_SENDER: "vaishnavanand90@gmail.com"
+  PRODUCTION_URL: "https://your-production-url.com"
+
 handlers:
   # This configures Google App Engine to serve the files in the app's static
   # directory.
@@ -11,4 +23,14 @@ handlers:
   # the entire handlers section) when there are no static files defined.
 - url: /.*
   script: auto
+
+instance_class: F2
+
+automatic_scaling:
+  target_cpu_utilization: 0.65
+  min_instances: 1
+  max_instances: 10
+  target_throughput_utilization: 0.6
+
+entrypoint: gunicorn -b :$PORT main:app --worker-class eventlet
 

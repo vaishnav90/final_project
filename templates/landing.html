@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Hathor - The Future of Trading</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        :root {
+            --primary: #8B5CF6;
+            --primary-dark: #7C3AED;
+            --primary-light: #A78BFA;
+            --accent: #EC4899;
+            --accent-dark: #DB2777;
+            --accent-light: #F472B6;
+            --bg-light: #f3f4f6;
+            --bg-dark: #1f2937;
+            --text-light: #f3f4f6;
+            --text-dark: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            transition: background-color 0.5s ease;
+        }
+
+        body.dark {
+            background: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(45deg);
+        }
+
+        .cursor-glow {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(
+                circle,
+                rgba(139, 92, 246, 0.15) 0%,
+                rgba(236, 72, 153, 0.1) 50%,
+                rgba(139, 92, 246, 0) 70%
+            );
+            position: fixed;
+            pointer-events: none;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+            mix-blend-mode: screen;
+            will-change: transform;
+            transform: translate(-50%, -50%);
+        }
+
+        body.dark .cursor-glow {
+            display: none;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        .gradient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                45deg,
+                rgba(139, 92, 246, 0.1),
+                rgba(236, 72, 153, 0.1)
+            );
+            z-index: 0;
+            filter: blur(100px);
+            animation: gradientMove 20s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            text-align: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .animated-showcase {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            margin: 2rem auto;
+            perspective: 1000px;
+        }
+
+        .clothing-item {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+            backdrop-filter: blur(5px);
+            transform-style: preserve-3d;
+            animation: colorPulse 3s infinite;
+        }
+
+        @keyframes colorPulse {
+            0% {
+                border-color: var(--primary);
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+            }
+            50% {
+                border-color: var(--accent);
+                box-shadow: 0 0 30px rgba(236, 72, 153, 0.2);
+            }
+            100% {
+                border-color: var(--primary);
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+            }
+        }
+
+        .clothing-item svg {
+            width: 60%;
+            height: 60%;
+            fill: var(--primary);
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.3));
+        }
+
+        .clothing-item:hover {
+            transform: translateY(-10px) scale(1.1);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);
+            animation: none;
+        }
+
+        .clothing-item:hover svg {
+            fill: var(--accent);
+            transform: rotate(10deg);
+            filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.5));
+        }
+
+        .fashion-circle {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: rotateAndPulse 20s linear infinite;
+        }
+
+        @keyframes rotateAndPulse {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg) scale(1);
+                border-color: var(--primary);
+            }
+            50% {
+                transform: translate(-50%, -50%) rotate(180deg) scale(1.1);
+                border-color: var(--accent);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg) scale(1);
+                border-color: var(--primary);
+            }
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(
+                to right,
+                var(--primary) 20%,
+                var(--accent) 40%,
+                var(--accent-light) 60%,
+                var(--primary-light) 80%
+            );
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: shine 3s linear infinite;
+            font-weight: 800;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            background: linear-gradient(
+                45deg,
+                var(--primary-light),
+                var(--accent-light)
+            );
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .cta-button {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .primary-cta {
+            background: linear-gradient(
+                45deg,
+                var(--primary),
+                var(--accent)
+            );
+            color: white;
+            border: none;
+            background-size: 200% 200%;
+            animation: gradientBG 3s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .primary-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .secondary-cta {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .secondary-cta:hover {
+            background: rgba(139, 92, 246, 0.1);
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .animated-showcase {
+                width: 100%;
+                height: 300px;
+                margin: 1rem auto;
+            }
+
+            .clothing-item {
+                width: 60px;
+                height: 60px;
+            }
+
+            .clothing-item svg {
+                width: 70%;
+                height: 70%;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+                padding: 0 1rem;
+            }
+            
+            .tagline {
+                font-size: 1.1rem;
+                padding: 0 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 0 2rem;
+            }
+
+            .cta-button {
+                width: 100%;
+                text-align: center;
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 1rem;
+                min-height: 100dvh; /* Use dynamic viewport height for mobile */
+            }
+
+            .cursor-glow {
+                display: none; /* Hide cursor glow on mobile */
+            }
+
+            .fashion-circle {
+                width: 300px;
+                height: 300px;
+            }
+
+            .footer {
+                padding: 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .clothing-item {
+                width: 50px;
+                height: 50px;
+            }
+
+            .clothing-item svg {
+                width: 75%;
+                height: 75%;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .animated-showcase {
+                height: 250px;
+            }
+
+            .fashion-circle {
+                width: 250px;
+                height: 250px;
+            }
+
+            .hero-content {
+                width: 100%;
+            }
+        }
+
+        /* Fix iOS Safari 100vh issue */
+        @supports (-webkit-touch-callout: none) {
+            .hero {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .footer p {
+            margin: 0;
+            background: linear-gradient(
+                45deg,
+                var(--primary-light),
+                var(--accent-light)
+            );
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: 500;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer p:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <div class="cursor-glow"></div>
+    <div class="gradient-bg"></div>
+    
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="reveal-text">Welcome to Hathor</h1>
+            <p class="tagline">Your School's Sustainable Fashion Marketplace</p>
+            <div class="animated-showcase">
+                <div class="fashion-circle"></div>
+            </div>
+            <div class="cta-buttons">
+                <a href="/signup" class="cta-button primary-cta">Get Started</a>
+                <a href="/login" class="cta-button secondary-cta">Sign In</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>Built by Vaishnav Anand & Asher Burdeny</p>
+    </footer>
+
+    <script>
+        // Initialize GSAP
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Theme toggling
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.querySelector('.theme-toggle');
+            body.classList.toggle('dark');
+            themeToggle.textContent = body.classList.contains('dark') ? '☀️' : '🌙';
+        }
+
+        // Cursor glow effect with color transition
+        const cursorGlow = document.querySelector('.cursor-glow');
+        let cursorX = 0;
+        let cursorY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        // Smooth cursor movement
+        function updateCursor() {
+            cursorX += (targetX - cursorX) * 0.15;
+            cursorY += (targetY - cursorY) * 0.15;
+            if (cursorGlow) {
+                cursorGlow.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
+            }
+            requestAnimationFrame(updateCursor);
+        }
+        updateCursor();
+
+        document.addEventListener('mousemove', (e) => {
+            const currentTime = performance.now();
+            const timeDelta = (currentTime - lastMouseTime) / 1000; // Convert to seconds
+            
+            // Calculate mouse velocity
+            mouseVelocityX = (e.clientX - lastMouseX) / Math.max(timeDelta, 0.016);
+            mouseVelocityY = (e.clientY - lastMouseY) / Math.max(timeDelta, 0.016);
+            
+            // Update cursor target position
+            targetX = e.clientX;
+            targetY = e.clientY;
+            
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            lastMouseTime = currentTime;
+        });
+
+        // Create clothing items with enhanced animations
+        const showcase = document.querySelector('.animated-showcase');
+        const clothingItems = [
+            { icon: 'M12 2L8 6l4 4-4 10h8l-4-10 4-4z', name: 'dress' },
+            { icon: 'M21 4h-3.1c-.5-2.3-2.5-4-4.9-4S8.6 1.7 8.1 4H5C3.3 4 2 5.3 2 7v13c0 1.7 1.3 3 3 3h16c1.7 0 3-1.3 3-3V7c0-1.7-1.3-3-3-3zM13 2c1.3 0 2.4.8 2.8 2h-5.6c.4-1.2 1.5-2 2.8-2z', name: 'shirt' },
+            { icon: 'M7 2L5 22h4l2-15 2 15h4L15 2H7z', name: 'pants' },
+            { icon: 'M12 2L8 6v16h8V6z', name: 'skirt' },
+            { icon: 'M19 4h-4L12 2L9 4H5C3.3 4 2 5.3 2 7v13c0 1.7 1.3 3 3 3h14c1.7 0 3-1.3 3-3V7c0-1.7-1.3-3-3-3z', name: 'jacket' }
+        ];
+
+        // Store original positions and velocities for each item
+        const itemStates = [];
+        const DAMPING = 0.985; // Increased for smoother deceleration
+        const BOUNCE_STRENGTH = 0.9; // Increased bounce
+        const PUSH_STRENGTH = 1.2; // Increased push strength
+        const BASE_MOVEMENT = 0.15; // Reduced for subtler idle animation
+        const ATTRACTION_STRENGTH = 0.03; // Increased attraction to original position
+        const MOUSE_INFLUENCE_RADIUS = 150; // Radius of mouse influence
+        const VELOCITY_CAP = 15; // Maximum velocity
+        let isMobile = window.innerWidth <= 768;
+        let mouseVelocityX = 0;
+        let mouseVelocityY = 0;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let lastMouseTime = performance.now();
+
+        clothingItems.forEach((item, index) => {
+            const element = document.createElement('div');
+            element.className = 'clothing-item';
+            element.innerHTML = `<svg viewBox="0 0 24 24"><path d="${item.icon}"/></svg>`;
+            showcase.appendChild(element);
+
+            // Calculate initial position
+            const radius = isMobile ? 80 : 150; // Smaller radius for mobile
+            const centerX = isMobile ? showcase.clientWidth / 2 : 400;
+            const centerY = isMobile ? showcase.clientHeight / 2 : 200;
+            const angle = (index / clothingItems.length) * Math.PI * 2;
+            const x = Math.cos(angle) * radius + centerX;
+            const y = Math.sin(angle) * radius + centerY;
+
+            // Initialize state
+            itemStates.push({
+                element,
+                x,
+                y,
+                vx: 0,
+                vy: 0,
+                originalX: x,
+                originalY: y,
+                isBeingPushed: false
+            });
+
+            gsap.set(element, { x, y });
+        });
+
+        // Physics update loop
+        let lastTime = performance.now();
+        function updatePhysics() {
+            const currentTime = performance.now();
+            const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
+            lastTime = currentTime;
+
+            const showcaseRect = showcase.getBoundingClientRect();
+
+            itemStates.forEach((state) => {
+                // Add smooth base movement
+                state.vx += (Math.sin(currentTime * 0.001 + state.originalX * 0.1) * BASE_MOVEMENT);
+                state.vy += (Math.cos(currentTime * 0.001 + state.originalY * 0.1) * BASE_MOVEMENT);
+
+                if (!state.isBeingPushed) {
+                    // Apply damping
+                    state.vx *= Math.pow(DAMPING, deltaTime * 60);
+                    state.vy *= Math.pow(DAMPING, deltaTime * 60);
+
+                    // Attraction to original position with easing
+                    const dx = state.originalX - state.x;
+                    const dy = state.originalY - state.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const attraction = Math.min(distance * ATTRACTION_STRENGTH, 2);
+                    
+                    state.vx += dx * attraction * deltaTime;
+                    state.vy += dy * attraction * deltaTime;
+                }
+
+                // Mouse influence
+                const dx = lastMouseX - (state.x + 60);
+                const dy = lastMouseY - (state.y + 60);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < MOUSE_INFLUENCE_RADIUS) {
+                    const influence = Math.pow(1 - distance / MOUSE_INFLUENCE_RADIUS, 2);
+                    state.vx += mouseVelocityX * PUSH_STRENGTH * influence * deltaTime;
+                    state.vy += mouseVelocityY * PUSH_STRENGTH * influence * deltaTime;
+                }
+
+                // Cap velocity
+                const currentVelocity = Math.sqrt(state.vx * state.vx + state.vy * state.vy);
+                if (currentVelocity > VELOCITY_CAP) {
+                    const scale = VELOCITY_CAP / currentVelocity;
+                    state.vx *= scale;
+                    state.vy *= scale;
+                }
+
+                // Update position with smooth interpolation
+                state.x += state.vx * deltaTime * 60;
+                state.y += state.vy * deltaTime * 60;
+
+                // Boundary collision with smooth bounce
+                const margin = 20;
+                const minX = margin;
+                const maxX = showcaseRect.width - 120 - margin;
+                const minY = margin;
+                const maxY = showcaseRect.height - 120 - margin;
+
+                if (state.x < minX) {
+                    state.x = minX;
+                    state.vx = Math.abs(state.vx) * BOUNCE_STRENGTH;
+                }
+                if (state.x > maxX) {
+                    state.x = maxX;
+                    state.vx = -Math.abs(state.vx) * BOUNCE_STRENGTH;
+                }
+                if (state.y < minY) {
+                    state.y = minY;
+                    state.vy = Math.abs(state.vy) * BOUNCE_STRENGTH;
+                }
+                if (state.y > maxY) {
+                    state.y = maxY;
+                    state.vy = -Math.abs(state.vy) * BOUNCE_STRENGTH;
+                }
+
+                // Apply position with smooth transform
+                gsap.to(state.element, {
+                    x: state.x,
+                    y: state.y,
+                    duration: 0.15,
+                    ease: "power2.out"
+                });
+            });
+
+            requestAnimationFrame(updatePhysics);
+        }
+
+        // Initialize physics
+        updatePhysics();
+
+        // Smooth return to original positions
+        function returnToOriginal() {
+            itemStates.forEach((state) => {
+                gsap.to(state, {
+                    x: state.originalX,
+                    y: state.originalY,
+                    vx: 0,
+                    vy: 0,
+                    duration: 1,
+                    ease: "elastic.out(1, 0.5)",
+                    onUpdate: () => {
+                        gsap.to(state.element, {
+                            x: state.x,
+                            y: state.y,
+                            duration: 0.15,
+                            ease: "power2.out"
+                        });
+                    }
+                });
+            });
+        }
+
+        // Update window resize handler
+        window.addEventListener('resize', () => {
+            isMobile = window.innerWidth <= 768;
+            const radius = isMobile ? 80 : 150;
+            const centerX = isMobile ? showcase.clientWidth / 2 : 400;
+            const centerY = isMobile ? showcase.clientHeight / 2 : 200;
+
+            itemStates.forEach((state, index) => {
+                const angle = (index / itemStates.length) * Math.PI * 2;
+                state.originalX = Math.cos(angle) * radius + centerX;
+                state.originalY = Math.sin(angle) * radius + centerY;
+                
+                // Smooth transition to new positions
+                gsap.to(state, {
+                    x: state.originalX,
+                    y: state.originalY,
+                    duration: 0.5,
+                    ease: 'power2.out'
+                });
+            });
+        });
+
+        // Reveal animation for text
+        gsap.from('.reveal-text', {
+            y: 100,
+            opacity: 0,
+            duration: 1,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.tagline', {
+            y: 50,
+            opacity: 0,
+            duration: 1,
+            delay: 0.3,
+            ease: 'power3.out'
+        });
+
+        gsap.from('.cta-buttons', {
+            y: 50,
+            opacity: 0,
+            duration: 1,
+            delay: 0.6,
+            ease: 'power3.out'
+        });
+
+        // Parallax effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            gsap.to('.clothing-item', {
+                y: `+=${scrolled * 0.2}`,
+                rotation: scrolled * 0.05,
+                stagger: 0.02,
+                ease: 'none'
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -8,3 +8,6 @@ Werkzeug==2.3.7
 flask-socketio==5.3.6
 python-socketio==5.11.1
 eventlet==0.35.2
+gunicorn==21.2.0
+Flask-CORS==4.0.0
+dnspython==2.4.2
