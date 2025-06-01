@@ -41,7 +41,15 @@
                         </span>
                         <span class="text-sm text-gray-500 dark:text-gray-400">{{ listing.created_at|timeago }}</span>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ listing.title }}</h1>
+                    <div class="flex items-center justify-between mb-4">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ listing.title }}</h1>
+                        {% if current_user.is_authenticated and current_user.id != listing.seller_id %}
+                        <button onclick="showFlagModal()"
+                                class="text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors">
+                            <i class="fas fa-flag"></i>
+                        </button>
+                        {% endif %}
+                    </div>
                     <p class="text-3xl font-bold text-primary dark:text-primary-light mt-2">${{ "%.2f"|format(listing.price) }}</p>
                 </div>
 
@@ -152,9 +160,51 @@
         </form>
     </div>
 </div>
+
+<!-- Flag Modal -->
+<div id="flagModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Report Listing</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-4">Please select a reason for reporting this listing:</p>
+        
+        <form id="flagForm" class="space-y-4">
+            <div class="space-y-2">
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="reason" value="inappropriate" class="text-primary" checked>
+                    <span class="text-gray-700 dark:text-gray-300">Inappropriate Content</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="reason" value="spam" class="text-primary">
+                    <span class="text-gray-700 dark:text-gray-300">Spam or Misleading</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="reason" value="prohibited" class="text-primary">
+                    <span class="text-gray-700 dark:text-gray-300">Prohibited Items</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                    <input type="radio" name="reason" value="other" class="text-primary">
+                    <span class="text-gray-700 dark:text-gray-300">Other</span>
+                </label>
+            </div>
+            
+            <div class="flex justify-end space-x-2">
+                <button type="button" 
+                        onclick="hideFlagModal()"
+                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
+                    Report Listing
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+{{ super() }}
 <script>
     const offerModal = document.getElementById('offer-modal');
     const makeOfferBtn = document.getElementById('make-offer-btn');
@@ -205,5 +255,68 @@
             }
         });
     }
+
+    function showFlagModal() {
+        document.getElementById('flagModal').classList.remove('hidden');
+        document.getElementById('flagModal').classList.add('flex');
+    }
+
+    function hideFlagModal() {
+        document.getElementById('flagModal').classList.add('hidden');
+        document.getElementById('flagModal').classList.remove('flex');
+    }
+
+    document.getElementById('flagForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const reason = document.querySelector('input[name="reason"]:checked').value;
+        
+        fetch(`/flag_listing/{{ listing._id }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `reason=${reason}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                hideFlagModal();
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'p-4 mb-4 rounded-lg bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+                alertDiv.textContent = 'Thank you for reporting this listing. We will review it shortly.';
+                document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+                
+                // If listing is taken down, refresh the page after 2 seconds
+                if (data.flag_count >= 3) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while reporting the listing. Please try again.');
+        });
+    });
+
+    // Check if user has already flagged this listing
+    fetch(`/listing/{{ listing._id }}/flag_status`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.has_flagged) {
+                const flagButton = document.querySelector('button[onclick="showFlagModal()"]');
+                if (flagButton) {
+                    flagButton.classList.add('text-red-500', 'dark:text-red-400');
+                    flagButton.disabled = true;
+                    flagButton.title = 'You have already flagged this listing';
+                }
+            }
+        })
+        .catch(error => console.error('Error:', error));
 </script>
 {% endblock %}

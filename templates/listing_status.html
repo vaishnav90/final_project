@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 font-display">Listing Status</h2>
+        
+        <!-- Tabs -->
+        <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+            <div class="flex space-x-8" x-data="{ activeTab: 'selling' }">
+                <button @click="activeTab = 'selling'"
+                        :class="{ 'border-primary dark:border-primary-light text-primary dark:text-primary-light': activeTab === 'selling' }"
+                        class="pb-4 text-sm font-medium border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                    My Listings
+                </button>
+                <button @click="activeTab = 'buying'"
+                        :class="{ 'border-primary dark:border-primary-light text-primary dark:text-primary-light': activeTab === 'buying' }"
+                        class="pb-4 text-sm font-medium border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+                    Items I'm Interested In
+                </button>
+            </div>
+        </div>
+
+        <!-- Selling Tab Content -->
+        <div x-show="activeTab === 'selling'" x-cloak>
+            {% if my_listings %}
+                <div class="space-y-6">
+                    {% for listing in my_listings %}
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-4">
+                                    {% if listing.images and listing.images|length > 0 %}
+                                        <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                                             alt="{{ listing.title }}"
+                                             class="w-16 h-16 object-cover rounded-lg">
+                                    {% else %}
+                                        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400 dark:text-gray-500"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h3 class="font-medium text-gray-900 dark:text-white">{{ listing.title }}</h3>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">${{ "%.2f"|format(listing.price) }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-3 py-1 text-sm rounded-full 
+                                        {% if listing.status == 'active' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                        {% elif listing.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                        {% elif listing.status == 'sold' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                                        {% else %}bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200{% endif %}">
+                                        {{ listing.status|title }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if listing.offers %}
+                            <div class="mt-4 space-y-3">
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-white">Offers</h4>
+                                {% for offer in listing.offers %}
+                                <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                                    <div>
+                                        <p class="text-sm text-gray-900 dark:text-white">
+                                            Offer from {{ offer.buyer_username }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ offer.created_at|timeago }}
+                                        </p>
+                                    </div>
+                                    {% if offer.status == 'pending' %}
+                                    <div class="flex space-x-2">
+                                        <button onclick="acceptOffer('{{ offer._id }}')"
+                                                class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors">
+                                            Accept
+                                        </button>
+                                        <button onclick="declineOffer('{{ offer._id }}')"
+                                                class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors">
+                                            Decline
+                                        </button>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-sm 
+                                        {% if offer.status == 'accepted' %}text-green-600 dark:text-green-400
+                                        {% else %}text-red-600 dark:text-red-400{% endif %}">
+                                        {{ offer.status|title }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <div class="mb-4">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No listings yet</h3>
+                    <p class="text-gray-500 dark:text-gray-400">Start selling your items today!</p>
+                    <a href="{{ url_for('sell') }}" class="inline-block mt-4 px-6 py-3 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg font-medium transition-colors">
+                        Create Listing
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Buying Tab Content -->
+        <div x-show="activeTab === 'buying'" x-cloak>
+            {% if interested_listings %}
+                <div class="space-y-6">
+                    {% for listing in interested_listings %}
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-4">
+                                    {% if listing.images and listing.images|length > 0 %}
+                                        <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                                             alt="{{ listing.title }}"
+                                             class="w-16 h-16 object-cover rounded-lg">
+                                    {% else %}
+                                        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400 dark:text-gray-500"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h3 class="font-medium text-gray-900 dark:text-white">{{ listing.title }}</h3>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">${{ "%.2f"|format(listing.price) }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Seller: {{ listing.seller_username }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-3 py-1 text-sm rounded-full 
+                                        {% if listing.status == 'active' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                        {% elif listing.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                        {% elif listing.status == 'sold' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                                        {% else %}bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200{% endif %}">
+                                        {{ listing.status|title }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if listing.my_offer %}
+                            <div class="mt-4">
+                                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-900 dark:text-white">Your offer</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ listing.my_offer.created_at|timeago }}
+                                            </p>
+                                        </div>
+                                        <span class="text-sm 
+                                            {% if listing.my_offer.status == 'accepted' %}text-green-600 dark:text-green-400
+                                            {% elif listing.my_offer.status == 'declined' %}text-red-600 dark:text-red-400
+                                            {% else %}text-yellow-600 dark:text-yellow-400{% endif %}">
+                                            {{ listing.my_offer.status|title }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <div class="mb-4">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No items you're interested in</h3>
+                    <p class="text-gray-500 dark:text-gray-400">Browse items and make offers!</p>
+                    <a href="{{ url_for('listings') }}" class="inline-block mt-4 px-6 py-3 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg font-medium transition-colors">
+                        Browse Items
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function acceptOffer(offerId) {
+        if (confirm('Are you sure you want to accept this offer?')) {
+            fetch(`/api/offers/${offerId}/accept`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === 'success') {
+                      window.location.reload();
+                  } else {
+                      alert('Failed to accept offer. Please try again.');
+                  }
+              });
+        }
+    }
+
+    function declineOffer(offerId) {
+        if (confirm('Are you sure you want to decline this offer?')) {
+            fetch(`/api/offers/${offerId}/decline`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === 'success') {
+                      window.location.reload();
+                  } else {
+                      alert('Failed to decline offer. Please try again.');
+                  }
+              });
+        }
+    }
+</script>
+{% endblock %} 

@@ -1,158 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liked Items | APP</title>
-    <link href="static/assets/css/styles.css" rel="stylesheet" />
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
-            </div>
-            <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('listings') }}">Browse</a>
-                <a href="{{ url_for('how_it_works') }}">How It Works</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('messages') }}">Messages</a>
-                {% endif %}
-            </div>
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn" id="sell-btn">Sell Item</button>
-                </a>
-                    <a href="{{ url_for('liked_items') }}">
-                        <button class="btn">Saved</button>
-                    </a>
-                    <a href="{{ url_for('logout') }}">
-                        <button class="btn">Logout</button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}">
-                        <button class="btn">Sign Up</button>
-                    </a>
-                    <a href="{{ url_for('login') }}">
-                        <button class="btn">Login</button>
-                    </a>
-                {% endif %}
-            </div>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <section class="main-container">
-        <div class="section-header">
-        <h2 class="section-title">How it works</h2>
-        </div>
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 font-display">How It Works</h2>
         
-        <div class="categories-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem;">
-        <div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
-        <div style="height: 140px; background-color: #f8e9e2; display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 2.5rem;">👚</span>
-        </div>
-        <div style="padding: 1.25rem;">
-            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Browse items</h3>
-            <p style="color: var(--text-light); font-size: 0.9rem;">Explore a wide variety of pre-loved items in your local area. Use filters to find exactly what you're looking for.</p>
-        </div>
-        </div>
-        
-        <div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
-        <div style="height: 140px; background-color: #f8f1e2; display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 2.5rem;">❤️</span>
-        </div>
-        <div style="padding: 1.25rem;">
-            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Save Your Favorites</h3>
-            <p style="color: var(--text-light); font-size: 0.9rem;">Click the ❤️ icon on any item to save it to your "Saved Items" page for easy access later.</p>
-        </div>
-        </div>
-        
-        <div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
-        <div style="height: 140px; background-color: #f8f8e2; display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 2.5rem;">💰</span>
-        </div>
-        <div style="padding: 1.25rem;">
-            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Sell Your Items</h3>
-            <p style="color: var(--text-light); font-size: 0.9rem;">List your items, new or used for sale by clicking the "Sell Item" button. Upload photos, set a price, and share details about your item.</p>
-        </div>
-        </div>
-        
-        <div class="category-card" style="background-color: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; text-align: center; transition: transform 0.3s;">
-        <div style="height: 140px; background-color: #e6f8e2; display: flex; align-items: center; justify-content: center;">
-            <span style="font-size: 2.5rem;">📞</span>
-        </div>
-        <div style="padding: 1.25rem;">
-            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Contact Sellers</h3>
-            <p style="color: var(--text-light); font-size: 0.9rem;">Found something you like? Use the "Contact Seller" button to message the seller directly and arrange a purchase.</p>
-        </div>
-        </div>
-        </div>
-        </section>
-
-        <section class="hero">
-            <div class="hero-content animate-slide">
-                <p>Join our local community to find quality secondhand clothes and give your wardrobe items a second life.</p>
-                <button class="btn btn-accent" id="get-started-btn">Get Started Today </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Browse Items -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="h-20 w-20 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-4xl">👚</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">Browse Items</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-center">Explore a wide variety of pre-loved items in your local area. Use filters to find exactly what you're looking for.</p>
             </div>
-        </section>
 
-<footer>
-        <div class="footer-content">
-        <div class="footer-section">
-        <h3>APP</h3>
-        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">Your local marketplace for pre-loved fashion in San Ramon and Danville.</p>
-        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <a href="#" style="color: white; font-size: 1.2rem;">📱</a>
-        <a href="#" style="color: white; font-size: 1.2rem;">📘</a>
-        <a href="#" style="color: white; font-size: 1.2rem;">📸</a>
-        <a href="#" style="color: white; font-size: 1.2rem;">🐦</a>
+            <!-- Save Favorites -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="h-20 w-20 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-4xl">❤️</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">Save Your Favorites</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-center">Click the ❤️ icon on any item to save it to your "Saved Items" page for easy access later.</p>
+            </div>
+
+            <!-- Sell Items -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="h-20 w-20 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-4xl">💰</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">Sell Your Items</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-center">List your items, new or used for sale by clicking the "Sell Item" button. Upload photos, set a price, and share details about your item.</p>
+            </div>
+
+            <!-- Contact Sellers -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div class="h-20 w-20 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-4xl">📞</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">Contact Sellers</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-center">Found something you like? Use the "Contact Seller" button to message the seller directly and arrange a purchase.</p>
+            </div>
         </div>
-        </div>
-        
-        <div class="footer-section">
-        <h3>Quick Links</h3>
-        <ul class="footer-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Browse Items</a></li>
-        <li><a href="#">Sell Items</a></li>
-        <li><a href="#">How It Works</a></li>
-        <li><a href="#">FAQ</a></li>
-        </ul>
-        </div>
-        
-        <div class="footer-section">
-        <h3>Categories</h3>
-        <ul class="footer-links">
-        <li><a href="#">Women's Clothing</a></li>
-        <li><a href="#">Men's Clothing</a></li>
-        <li><a href="#">Shoes & Accessories</a></li>
-        <li><a href="#">Children's</a></li>
-        <li><a href="#">Activewear</a></li>
-        </ul>
-        </div>
-        
-        <div class="footer-section">
-        <h3>Contact Us</h3>
-        <ul class="footer-links">
-        <li><a href="mailto:vaishnavanand90@gmail.com">vaishnavanand90@gmail.com</a></li>
-        <li><a href="mailto:asherburdeny@gmail.com">asherburdeny@gmail.com</a></li>
-        <li style="color: rgba(255, 255, 255, 0.7);">San Ramon & Danville, CA</li>
-        </ul>
-        </div>
-        </div>
-        
-        <div class="footer-bottom">
-        <p>&copy; 2025 APP. All rights reserved.</p>
-        <p style="margin-top: 0.5rem;">
-        <a href="#" style="color: rgba(255, 255, 255, 0.6); margin-right: 1rem;">Privacy Policy</a>
-        <a href="#" style="color: rgba(255, 255, 255, 0.6); margin-right: 1rem;">Terms of Service</a>
-        <a href="#" style="color: rgba(255, 255, 255, 0.6);">Community Guidelines</a>
-        </p>
-        </div>
-</footer>
-</body>
-</html>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="bg-primary/5 dark:bg-primary/10 rounded-xl p-8 text-center">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Join our local community today!</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Find quality secondhand clothes and give your wardrobe items a second life.</p>
+        <a href="{{ url_for('signup') if not current_user.is_authenticated else url_for('sell') }}" 
+           class="inline-block px-8 py-3 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg font-medium transition-colors">
+            {{ 'Get Started Today' if not current_user.is_authenticated else 'Start Selling' }}
+        </a>
+    </div>
+</div>
+{% endblock %}

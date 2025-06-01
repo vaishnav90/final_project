@@ -1,298 +1,414 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile | APP</title>
-    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet">
-    <style>
-        .profile-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-        
-        .profile-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background-color: var(--primary-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-right: 2rem;
-        }
-        
-        .profile-info h1 {
-            margin-bottom: 0.5rem;
-            color: var(--primary-dark);
-        }
-        
-        .profile-info p {
-            color: var(--text-light);
-        }
-        
-        .profile-section {
-            margin-bottom: 2rem;
-        }
-        
-        .profile-section h2 {
-            margin-bottom: 1rem;
-            color: var(--primary-dark);
-            font-size: 1.25rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        
-        .form-group input, 
-        .form-group select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 1rem;
-        }
-        
-        .form-group input:focus, 
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        
-        .stat-card {
-            background: var(--primary-light);
-            padding: 1rem;
-            border-radius: var(--radius);
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--primary-dark);
-            margin-bottom: 0.25rem;
-        }
-        
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-light);
-        }
-        
-        .password-toggle {
-            position: relative;
-        }
-        
-        .password-toggle i {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: var(--text-light);
-        }
-        
-        .danger-zone {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid #f8d7da;
-        }
-        
-        .danger-zone h2 {
-            color: #dc3545;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
-              </div>
-            <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('listings') }}">Browse</a>
-                <a href="{{ url_for('how_it_works') }}">How It Works</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('messages') }}">Messages</a>
-                {% endif %}
-            </div>
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn" id="sell-btn">Sell Item</button>
-                </a>
-                    <a href="{{ url_for('liked_items') }}">
-                        <button class="btn">Saved</button>
-                    </a>
-                    <a href="{{ url_for('logout') }}">
-                        <button class="btn">Logout</button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}">
-                        <button class="btn">Sign Up</button>
-                    </a>
-                    <a href="{{ url_for('login') }}">
-                        <button class="btn">Login</button>
-                    </a>
-                {% endif %}
-            </div>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <main class="profile-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-6">
+                {% for category, message in messages %}
+                    <div class="p-4 mb-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Profile Info -->
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                <!-- Profile Header -->
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center space-x-6">
+                        <div class="w-24 h-24 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center text-primary dark:text-primary-light text-4xl font-semibold">
+                            {{ user.username[0].upper() }}
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ user.username }}</h1>
+                            <p class="text-gray-600 dark:text-gray-400">Member since {{ user.profile.joined_date.strftime('%B %Y') }}</p>
+                        </div>
+                    </div>
                 </div>
-            {% endif %}
-        {% endwith %}
 
-        <div class="profile-header">
-            <div class="avatar">
-                {{ user.username[0].upper() }}
-            </div>
-            <div class="profile-info">
-                <h1>{{ user.username }}</h1>
-                <p>Member since {{ user.profile.joined_date.strftime('%B %Y') }}</p>
+                <form method="POST" action="{{ url_for('profile') }}" class="p-6 space-y-6">
+                    <!-- Basic Information -->
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
+                        <input type="text" 
+                               id="username" 
+                               name="username" 
+                               value="{{ user.username }}" 
+                               required
+                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label for="school" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">School</label>
+                        <select id="school" 
+                                name="school" 
+                                required
+                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                            <option value="The Athenian School" {% if user.profile.school == 'The Athenian School' %}selected{% endif %}>The Athenian School</option>
+                            <option value="Dougherty Valley High" {% if user.profile.school == 'Dougherty Valley High' %}selected{% endif %}>Dougherty Valley High</option>
+                            <option value="Monte Vista High" {% if user.profile.school == 'Monte Vista High' %}selected{% endif %}>Monte Vista High</option>
+                            <option value="San Ramon Valley High" {% if user.profile.school == 'San Ramon Valley High' %}selected{% endif %}>San Ramon Valley High</option>
+                            <option value="Bentley School" {% if user.profile.school == 'Bentley School' %}selected{% endif %}>Bentley School</option>
+                        </select>
+                    </div>
+
+                    <!-- Change Password -->
+                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Change Password</h3>
+                        <div class="space-y-4">
+                            <div class="relative">
+                                <label for="current_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
+                                <input type="password" 
+                                       id="current_password" 
+                                       name="current_password"
+                                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                            </div>
+
+                            <div class="relative">
+                                <label for="new_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+                                <input type="password" 
+                                       id="new_password" 
+                                       name="new_password"
+                                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="flex justify-end pt-4">
+                        <button type="submit" 
+                                class="px-6 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <form method="POST" action="{{ url_for('profile') }}">
-            <div class="profile-section">
-                <h2>Basic Information</h2>
-                
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" value="{{ user.username }}" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="school">School</label>
-                    <select id="school" name="school" required>
-                        <option value="The Athenian School" {% if user.profile.school == 'The Athenian School' %}selected{% endif %}>The Athenian School</option>
-                        <option value="Dougherty Valley High" {% if user.profile.school == 'Dougherty Valley High' %}selected{% endif %}>Dougherty Valley High</option>
-                        <option value="Monte Vista High" {% if user.profile.school == 'Monte Vista High' %}selected{% endif %}>Monte Vista High</option>
-                        <option value="San Ramon Valley High" {% if user.profile.school == 'San Ramon Valley High' %}selected{% endif %}>San Ramon Valley High</option>
-                        <option value="Bentley School" {% if user.profile.school == 'Bentley School' %}selected{% endif %}>Bentley School</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="profile-section">
-                <h2>Change Password</h2>
-                
-                <div class="form-group password-toggle">
-                    <label for="current_password">Current Password</label>
-                    <input type="password" id="current_password" name="current_password">
-                    <i class="toggle-password" data-target="current_password">👁️</i>
-                </div>
-                
-                <div class="form-group password-toggle">
-                    <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password">
-                    <i class="toggle-password" data-target="new_password">👁️</i>
-                </div>
-                
-                <p class="text-muted">Leave password fields blank if you don't want to change it.</p>
-            </div>
-
-            <div class="profile-section">
-                <h2>Your Stats</h2>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value">{{ user.stats.listings_count }}</div>
-                        <div class="stat-label">Listings</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-value">{{ user.stats.sold_count }}</div>
-                        <div class="stat-label">Items Sold</div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-value">
-                            {% if user.stats.review_count > 0 %}
-                                {{ "%.1f"|format(user.stats.rating / user.stats.review_count) }}
-                            {% else %}
-                                0
-                            {% endif %}
+        <!-- Listings and Offers -->
+        <div class="lg:col-span-2">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">My Listings & Offers</h2>
+                        <div class="flex space-x-2">
+                            <button id="showListings" 
+                                    class="px-4 py-2 bg-primary text-white rounded-lg transition-colors">
+                                My Listings
+                            </button>
+                            <button id="showInquiries" 
+                                    class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg transition-colors">
+                                My Inquiries
+                            </button>
                         </div>
-                        <div class="stat-label">Rating ({{ user.stats.review_count }} reviews)</div>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <!-- My Listings Section -->
+                    <div id="listingsSection">
+                        {% if my_listings %}
+                            <div class="space-y-6">
+                                {% for listing in my_listings %}
+                                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                                    <!-- Listing Info -->
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center space-x-4">
+                                            {% if listing.images and listing.images|length > 0 %}
+                                                <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                                                     alt="{{ listing.title }}"
+                                                     class="w-16 h-16 object-cover rounded-lg">
+                                            {% else %}
+                                                <div class="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                                                    <i class="fas fa-image text-gray-400"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <h3 class="font-medium text-gray-900 dark:text-white">{{ listing.title }}</h3>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">${{ "%.2f"|format(listing.price) }}</p>
+                                                <span class="inline-block px-2 py-1 text-xs rounded-full mt-1
+                                                    {% if listing.status == 'active' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                    {% elif listing.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                                    {% elif listing.status == 'sold' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                                                    {% else %}bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200{% endif %}">
+                                                    {{ listing.status|title }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <a href="{{ url_for('listing_detail', listing_id=listing._id) }}" 
+                                               class="text-primary dark:text-primary-light hover:underline">
+                                                View Listing
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <!-- Offers -->
+                                    {% if listing.offers %}
+                                    <div class="mt-4 space-y-3">
+                                        <h4 class="text-sm font-medium text-gray-900 dark:text-white">Offers</h4>
+                                        {% for offer in listing.offers %}
+                                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="text-sm text-gray-900 dark:text-white">
+                                                        Offer from {{ offer.buyer_username }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                        ${{ "%.2f"|format(offer.price) }} • {{ offer.created_at|timeago }}
+                                                    </p>
+                                                </div>
+                                                {% if offer.status == 'pending' %}
+                                                <div class="flex items-center space-x-2">
+                                                    <!-- Counter Offer Button -->
+                                                    <button onclick="showCounterOfferModal('{{ offer._id }}')"
+                                                            class="px-3 py-1 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white text-sm rounded-lg transition-colors">
+                                                        Counter
+                                                    </button>
+                                                    <!-- Accept Button -->
+                                                    <button onclick="acceptOffer('{{ offer._id }}')"
+                                                            class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors">
+                                                        Accept
+                                                    </button>
+                                                    <!-- Decline Button -->
+                                                    <button onclick="declineOffer('{{ offer._id }}')"
+                                                            class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors">
+                                                        Decline
+                                                    </button>
+                                                </div>
+                                                {% else %}
+                                                <span class="text-sm 
+                                                    {% if offer.status == 'accepted' %}text-green-600 dark:text-green-400
+                                                    {% elif offer.status == 'declined' %}text-red-600 dark:text-red-400
+                                                    {% else %}text-yellow-600 dark:text-yellow-400{% endif %}">
+                                                    {{ offer.status|title }}
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">No offers yet</p>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-8">
+                                <p class="text-gray-500 dark:text-gray-400 mb-4">You haven't listed any items yet</p>
+                                <a href="{{ url_for('sell') }}" 
+                                   class="inline-block px-6 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors">
+                                    Create Your First Listing
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- My Inquiries Section -->
+                    <div id="inquiriesSection" class="hidden">
+                        {% if my_inquiries %}
+                            <div class="space-y-6">
+                                {% for inquiry in my_inquiries %}
+                                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center space-x-4">
+                                            {% if inquiry.listing.images and inquiry.listing.images|length > 0 %}
+                                                <img src="{{ url_for('get_image', image_id=inquiry.listing.images[0]) }}" 
+                                                     alt="{{ inquiry.listing.title }}"
+                                                     class="w-16 h-16 object-cover rounded-lg">
+                                            {% else %}
+                                                <div class="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                                                    <i class="fas fa-image text-gray-400"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <h3 class="font-medium text-gray-900 dark:text-white">{{ inquiry.listing.title }}</h3>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">Listed for ${{ "%.2f"|format(inquiry.listing.price) }}</p>
+                                                <div class="flex items-center space-x-2 mt-1">
+                                                    <p class="text-sm font-medium">Your offer: ${{ "%.2f"|format(inquiry.price) }}</p>
+                                                    <span class="inline-block px-2 py-1 text-xs rounded-full
+                                                        {% if inquiry.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                                        {% elif inquiry.status == 'accepted' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                        {% elif inquiry.status == 'declined' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                                                        {% else %}bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200{% endif %}">
+                                                        {{ inquiry.status|title }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <a href="{{ url_for('listing_detail', listing_id=inquiry.listing._id) }}" 
+                                               class="text-primary dark:text-primary-light hover:underline">
+                                                View Listing
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-8">
+                                <p class="text-gray-500 dark:text-gray-400 mb-4">You haven't made any inquiries yet</p>
+                                <a href="{{ url_for('listings') }}" 
+                                   class="inline-block px-6 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors">
+                                    Browse Listings
+                                </a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <div class="submit-section">
-                <button type="submit" class="btn btn-accent">Save Changes</button>
-                <a href="{{ url_for('home') }}" class="btn btn-outline">Cancel</a>
+<!-- Counter Offer Modal -->
+<div id="counterOfferModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Make Counter Offer</h3>
+        <form id="counterOfferForm" onsubmit="submitCounterOffer(event)">
+            <input type="hidden" id="offerId" name="offer_id">
+            <div class="mb-4">
+                <label for="counterPrice" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Counter Price ($)</label>
+                <input type="number" 
+                       id="counterPrice" 
+                       name="counter_price" 
+                       step="0.01" 
+                       required
+                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button type="button" 
+                        onclick="hideCounterOfferModal()"
+                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors">
+                    Send Counter Offer
+                </button>
             </div>
         </form>
-    </main>
+    </div>
+</div>
+{% endblock %}
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Toggle password visibility
-            document.querySelectorAll('.toggle-password').forEach(icon => {
-                icon.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-target');
-                    const input = document.getElementById(targetId);
-                    
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        this.textContent = '🙈';
-                    } else {
-                        input.type = 'password';
-                        this.textContent = '👁️';
-                    }
-                });
-            });
-            
-            // Confirm before submitting password change
-            const form = document.querySelector('form');
-            form.addEventListener('submit', function(e) {
-                const currentPass = document.getElementById('current_password').value;
-                const newPass = document.getElementById('new_password').value;
-                
-                if ((currentPass || newPass) && (!currentPass || !newPass)) {
-                    e.preventDefault();
-                    alert('Please fill in both current and new password fields to change your password.');
-                }
-            });
+{% block scripts %}
+<script>
+    // Add these functions at the beginning of your scripts block
+    const showListings = document.getElementById('showListings');
+    const showInquiries = document.getElementById('showInquiries');
+    const listingsSection = document.getElementById('listingsSection');
+    const inquiriesSection = document.getElementById('inquiriesSection');
+
+    showListings.addEventListener('click', () => {
+        listingsSection.classList.remove('hidden');
+        inquiriesSection.classList.add('hidden');
+        showListings.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+        showListings.classList.add('bg-primary', 'text-white');
+        showInquiries.classList.remove('bg-primary', 'text-white');
+        showInquiries.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+    });
+
+    showInquiries.addEventListener('click', () => {
+        listingsSection.classList.add('hidden');
+        inquiriesSection.classList.remove('hidden');
+        showInquiries.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+        showInquiries.classList.add('bg-primary', 'text-white');
+        showListings.classList.remove('bg-primary', 'text-white');
+        showListings.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+    });
+
+    function showCounterOfferModal(offerId) {
+        document.getElementById('offerId').value = offerId;
+        document.getElementById('counterOfferModal').classList.remove('hidden');
+        document.getElementById('counterOfferModal').classList.add('flex');
+    }
+
+    function hideCounterOfferModal() {
+        document.getElementById('counterOfferModal').classList.add('hidden');
+        document.getElementById('counterOfferModal').classList.remove('flex');
+    }
+
+    function submitCounterOffer(event) {
+        event.preventDefault();
+        const offerId = document.getElementById('offerId').value;
+        const counterPrice = document.getElementById('counterPrice').value;
+
+        fetch(`/handle_offer/${offerId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=counter&counter_price=${counterPrice}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload();
+            } else {
+                alert('Failed to send counter offer. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
         });
-    </script>
-</body>
-</html>
+    }
+
+    function acceptOffer(offerId) {
+        if (confirm('Are you sure you want to accept this offer?')) {
+            fetch(`/handle_offer/${offerId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=accept'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.reload();
+                } else {
+                    alert('Failed to accept offer. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    }
+
+    function declineOffer(offerId) {
+        if (confirm('Are you sure you want to decline this offer?')) {
+            fetch(`/handle_offer/${offerId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=decline'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.reload();
+                } else {
+                    alert('Failed to decline offer. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    }
+</script>
+{% endblock %}

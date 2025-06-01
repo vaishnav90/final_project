@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>🚩 Listing Flagged Notice</h2>
+    </div>
+    
+    <div class="content">
+        <p>Hello,</p>
+        
+        <p>We wanted to inform you that your listing "<strong>{{ listing.title }}</strong>" has been flagged by multiple users and has been temporarily taken down from our platform.</p>
+        
+        <p>This action was taken because {{ flag_count }} users have reported this listing as potentially inappropriate or violating our community guidelines.</p>
+        
+        <h3>What this means:</h3>
+        <ul>
+            <li>Your listing is currently not visible to other users</li>
+            <li>Any pending offers or messages will remain accessible</li>
+            <li>You can review our community guidelines to ensure your listing complies</li>
+        </ul>
+        
+        <p>If you believe this was done in error, please contact our support team for review.</p>
+        
+        <center>
+            <a href="{{ url_for('listing_detail', listing_id=listing._id, _external=True) }}" class="button">
+                View Listing Details
+            </a>
+        </center>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated message, please do not reply directly to this email.</p>
+        <p>© {{ now.year }} Hathor. All rights reserved.</p>
+    </div>
+</body>
+</html> 

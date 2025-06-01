@@ -1,0 +1,85 @@
+{% if notifications %}
+<div class="fixed top-4 right-4 z-50 w-96 space-y-4" id="notifications-container">
+    {% for notification in notifications %}
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden notification-item" data-id="{{ notification._id }}">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg">
+                        {% if notification.type == 'new_offer' %}🤝
+                        {% elif notification.type == 'offer_accepted' %}✅
+                        {% elif notification.type == 'offer_declined' %}❌
+                        {% else %}📢{% endif %}
+                    </span>
+                    <span class="font-medium text-gray-900 dark:text-white">
+                        {% if notification.type == 'new_offer' %}New Offer
+                        {% elif notification.type == 'offer_accepted' %}Offer Accepted
+                        {% elif notification.type == 'offer_declined' %}Offer Declined
+                        {% else %}Update{% endif %}
+                    </span>
+                </div>
+                <button onclick="dismissNotification('{{ notification._id }}')" 
+                        class="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400">
+                    ×
+                </button>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">{{ notification.message }}</p>
+            <div class="mt-2 flex justify-end space-x-2">
+                <a href="{{ notification.action_url }}" 
+                   class="text-sm text-primary dark:text-primary-light hover:underline">
+                    View Details
+                </a>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                {{ notification.created_at|timeago }}
+            </div>
+        </div>
+        <div class="h-1 bg-primary dark:bg-primary-light notification-progress"></div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-dismiss notifications after 10 seconds
+        const notifications = document.querySelectorAll('.notification-item');
+        notifications.forEach(notification => {
+            const progress = notification.querySelector('.notification-progress');
+            progress.style.transition = 'width 10s linear';
+            setTimeout(() => progress.style.width = '0%', 100);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 10000);
+        });
+    });
+
+    function dismissNotification(notificationId) {
+        const notification = document.querySelector(`[data-id="${notificationId}"]`);
+        if (notification) {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+            
+            // Mark notification as read in the backend
+            fetch(`/api/notifications/${notificationId}/dismiss`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+    }
+</script>
+
+<style>
+    .notification-item {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    .notification-progress {
+        width: 100%;
+        transition: width 10s linear;
+    }
+</style>
+{% endif %} 

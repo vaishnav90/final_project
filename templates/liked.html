@@ -1,184 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liked Items | APP</title>
-    <link href="static/assets/css/styles.css" rel="stylesheet" />
-</head>
+{% extends "base.html" %}
 
-<style>
-    .card-img-photo {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border-radius: 8px 8px 0 0;
-        display: block;
-    }
-</style>
-
-<body>
-    <header>
-        <nav>
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
-            </div>
-            <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('listings') }}">Browse</a>
-                <a href="{{ url_for('how_it_works') }}">How It Works</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('messages') }}">Messages</a>
-                {% endif %}
-            </div>
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn" id="sell-btn">Sell Item</button>
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 font-display">Saved Items</h2>
+        
+        {% if listings %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for listing in listings %}
+            <div class="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:scale-102">
+                <a href="{{ url_for('listing_detail', listing_id=listing._id) }}" class="block">
+                    {% if listing.images and listing.images|length > 0 %}
+                        <div class="aspect-w-1 aspect-h-1 bg-gray-100 dark:bg-gray-700">
+                            <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                                 alt="{{ listing.title }}"
+                                 class="w-full h-full object-cover">
+                        </div>
+                    {% else %}
+                        <div class="aspect-w-1 aspect-h-1 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                            <span class="text-gray-400 dark:text-gray-500">No image</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-3 py-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light rounded-full text-sm font-medium">
+                                {{ listing.category }}
+                            </span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ listing.created_at|timeago }}</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-primary dark:group-hover:text-primary-light transition-colors">{{ listing.title }}</h3>
+                        <p class="text-xl font-bold text-primary dark:text-primary-light mb-2">${{ "%.2f"|format(listing.price) }}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">{{ listing.neighborhood }}</span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">{{ listing.condition }}</span>
+                        </div>
+                    </div>
                 </a>
-                    <a href="{{ url_for('liked_items') }}">
-                        <button class="btn">Saved</button>
-                    </a>
-                    <a href="{{ url_for('logout') }}">
-                        <button class="btn">Logout</button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}">
-                        <button class="btn">Sign Up</button>
-                    </a>
-                    <a href="{{ url_for('login') }}">
-                        <button class="btn">Login</button>
-                    </a>
-                {% endif %}
             </div>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
-
-    <main class="main-container">
-        <section>
-            <div class="section-header">
-                <h2 class="section-title">Liked Items</h2>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="mb-4">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
             </div>
-            <div class="listings-grid" id="liked-items-grid">
-                <!-- Liked items will be dynamically added here -->
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-content">
-        <div class="footer-section">
-        <h3>APP</h3>
-        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">Your local marketplace for pre-loved fashion in San Ramon and Danville.</p>
-        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <a href="#" style="color: white; font-size: 1.2rem;">📱</a>
-        <a href="#" style="color: white; font-size: 1.2rem;">📘</a>
-        <a href="#" style="color: white; font-size: 1.2rem;">📸</a>
-        <a href="#" style="color: white; font-size: 1.2rem;">🐦</a>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No saved items yet</h3>
+            <p class="text-gray-500 dark:text-gray-400">Items you save will appear here</p>
+            <a href="{{ url_for('listings') }}" class="inline-block mt-4 px-6 py-3 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg font-medium transition-colors">
+                Browse Items
+            </a>
         </div>
-        </div>
-        
-        <div class="footer-section">
-        <h3>Quick Links</h3>
-        <ul class="footer-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Browse Items</a></li>
-        <li><a href="#">Sell Items</a></li>
-        <li><a href="#">How It Works</a></li>
-        <li><a href="#">FAQ</a></li>
-        </ul>
-        </div>
-        
-        <div class="footer-section">
-        <h3>Categories</h3>
-        <ul class="footer-links">
-        <li><a href="#">Women's Clothing</a></li>
-        <li><a href="#">Men's Clothing</a></li>
-        <li><a href="#">Shoes & Accessories</a></li>
-        <li><a href="#">Children's</a></li>
-        <li><a href="#">Activewear</a></li>
-        </ul>
-        </div>
-        
-        <div class="footer-section">
-        <h3>Contact Us</h3>
-        <ul class="footer-links">
-            <li><a href="mailto:vaishnavanand90@gmail.com">vaishnavanand90@gmail.com</a></li>
-            <li><a href="mailto:asherburdeny@gmail.com">asherburdeny@gmail.com</a></li>
-            <li style="color: rgba(255, 255, 255, 0.7);">San Ramon & Danville, CA</li>
-        </ul>
-        </div>
-        </div>
-        
-        <div class="footer-bottom">
-        <p>&copy; 2025 APP. All rights reserved.</p>
-        <p style="margin-top: 0.5rem;">
-        <a href="#" style="color: rgba(255, 255, 255, 0.6); margin-right: 1rem;">Privacy Policy</a>
-        <a href="#" style="color: rgba(255, 255, 255, 0.6); margin-right: 1rem;">Terms of Service</a>
-        <a href="#" style="color: rgba(255, 255, 255, 0.6);">Community Guidelines</a>
-        </p>
-        </div>
-</footer>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const likedItemsGrid = document.getElementById('liked-items-grid');
-        let likedItems = JSON.parse(localStorage.getItem('likedItems')) || [];
-    
-        function renderLikedItems() {
-            likedItemsGrid.innerHTML = '';
-            if (likedItems.length === 0) {
-                likedItemsGrid.innerHTML = '<p>No liked items yet.</p>';
-                return;
-            }
-    
-            likedItems.forEach(item => {
-                const listingCard = document.createElement('div');
-                listingCard.classList.add('listing-card', 'animate-fade');
-                let imageHtml = '';
-                if (item.images && item.images.length > 0 && item.images[0]) {
-                    imageHtml = `<img src="/image/${item.images[0]}" alt="${item.title}" class="card-img-photo">`;
-                } else {
-                    imageHtml = `<img src="/static/default-image.png" alt="No image" class="card-img-photo">`;
-                }
-                listingCard.innerHTML = `
-                    <div class="card-img">
-                        <button class="like-btn liked" data-listing-id="${item._id}" aria-label="Unlike Listing">❤️</button>
-                        ${imageHtml}
-                        <div class="card-badge">${item.condition || ''}</div>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">${item.title}</h3>
-                        <p class="card-price">${item.price ? '$' + item.price : ''}</p>
-                        <p class="card-location">
-                            <span class="material-icons">📍</span> 
-                            <span class="neighborhood-tag">${item.neighborhood || ''}</span>
-                        </p>
-                        <div class="card-meta">
-                            <span>Size: ${item.size || ''}</span>
-                        </div>
-                        <div class="card-actions">
-                            <a href="/listings/${item._id}">
-                                <button class="btn message-btn">View Details</button>
-                            </a>
-                        </div>
-                    </div>
-                `;
-                likedItemsGrid.appendChild(listingCard);
-    
-                // Unlike functionality
-                listingCard.querySelector('.like-btn').addEventListener('click', function () {
-                    likedItems = likedItems.filter(liked => liked._id !== item._id);
-                    localStorage.setItem('likedItems', JSON.stringify(likedItems));
-                    renderLikedItems();
-                });
-            });
-        }
-    
-        renderLikedItems();
-    });
-    </script>
-</body>
-</html>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

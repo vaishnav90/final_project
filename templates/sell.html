@@ -1,342 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sell Your Item | San Ramon/Danville Marketplace</title>
-    <link href="{{ url_for('static', filename='assets/css/styles.css') }}" rel="stylesheet" />
-    <style>
-        .sell-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        
-        .sell-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .sell-header h1 {
-            color: var(--primary-dark);
-            margin-bottom: 0.5rem;
-        }
-        
-        .sell-header p {
-            color: var(--text-light);
-            font-size: 1.1rem;
-        }
-        
-        .sell-form {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-        
-        .form-section {
-            margin-bottom: 2rem;
-        }
-        
-        .form-section h3 {
-            color: var(--primary-dark);
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-            border-bottom: 2px solid var(--primary-light);
-            padding-bottom: 0.5rem;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .form-group textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
-        
-        .form-help {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-top: 0.25rem;
-        }
-        
-        .file-upload-area {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius);
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background-color: #fafafa;
-        }
-        
-        .file-upload-area:hover {
-            border-color: var(--primary);
-            background-color: var(--primary-light);
-        }
-        
-        .file-upload-area.dragover {
-            border-color: var(--primary);
-            background-color: var(--primary-light);
-        }
-        
-        .upload-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: var(--text-light);
-        }
-        
-        .upload-text {
-            color: var(--text-dark);
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .upload-subtext {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-        
-        .image-preview {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .preview-item {
-            position: relative;
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-        
-        .preview-image {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-        }
-        
-        .remove-image {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .submit-section {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border);
-        }
-        
-        .btn-submit {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 1rem 3rem;
-            border-radius: var(--radius);
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-submit:hover {
-            background: var(--accent-dark);
-            transform: translateY(-2px);
-        }
-        
-        .btn-submit:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .flash-messages {
-            margin-bottom: 2rem;
-        }
-        
-        .flash-message {
-            padding: 1rem;
-            border-radius: var(--radius);
-            margin-bottom: 1rem;
-        }
-        
-        .flash-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .flash-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .required {
-            color: #e74c3c;
-        }
-        
-        .pricing-tips {
-            background: var(--primary-light);
-            padding: 1rem;
-            border-radius: var(--radius);
-            margin-top: 0.5rem;
-        }
-        
-        .pricing-tips h4 {
-            margin: 0 0 0.5rem 0;
-            color: var(--primary-dark);
-        }
-        
-        .pricing-tips ul {
-            margin: 0;
-            padding-left: 1.5rem;
-        }
-        
-        .pricing-tips li {
-            color: var(--text-dark);
-            font-size: 0.9rem;
-            margin-bottom: 0.25rem;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <header>
-        <nav>
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
-            </div>
-            <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('listings') }}">Browse</a>
-                <a href="{{ url_for('how_it_works') }}">How It Works</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('messages') }}">Messages</a>
-                {% endif %}
-            </div>
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn" id="sell-btn">Sell Item</button>
-                </a>
-                    <a href="{{ url_for('liked_items') }}">
-                        <button class="btn">Saved</button>
-                    </a>
-                    <a href="{{ url_for('logout') }}">
-                        <button class="btn">Logout</button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}">
-                        <button class="btn">Sign Up</button>
-                    </a>
-                    <a href="{{ url_for('login') }}">
-                        <button class="btn">Login</button>
-                    </a>
-                {% endif %}
-            </div>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <main class="sell-container">
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <div class="flash-message flash-{{ 'success' if category == 'success' else 'error' }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-6">
+                {% for category, message in messages %}
+                    <div class="p-4 mb-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
-        <div class="sell-header">
-            <h1>List Your Item</h1>
-            <p>Share your pre-loved fashion with the San Ramon & Danville community</p>
-        </div>
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-display">List Your Item</h1>
+        <p class="text-gray-600 dark:text-gray-400">Share your pre-loved fashion with the San Ramon & Danville community</p>
+    </div>
 
-        <form class="sell-form" method="POST" enctype="multipart/form-data" id="sell-form">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+        <form method="POST" enctype="multipart/form-data" id="sell-form">
             <!-- Basic Information -->
-            <div class="form-section">
-                <h3>Basic Information</h3>
-                <div class="form-group">
-                    <label for="title">Item Title <span class="required">*</span></label>
-                    <input type="text" id="title" name="title" required maxlength="100" 
-                           placeholder="e.g. Women's Levi's 501 Jeans - Size 28">
-                    <div class="form-help">Be specific and include brand, size, and key details</div>
-                </div>
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Basic Information</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Item Title <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               id="title" 
+                               name="title" 
+                               required 
+                               maxlength="100"
+                               placeholder="e.g. Women's Levi's 501 Jeans - Size 28"
+                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Be specific and include brand, size, and key details</p>
+                    </div>
 
-                <div class="form-group">
-                    <label for="description">Description <span class="required">*</span></label>
-                    <textarea id="description" name="description" required maxlength="1000"
-                              placeholder="Describe your item in detail. Include brand, color, material, condition notes, measurements, and any flaws or special features."></textarea>
-                    <div class="form-help">Be honest about condition and include all relevant details</div>
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Description <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="description" 
+                                  name="description" 
+                                  required 
+                                  maxlength="1000"
+                                  rows="4"
+                                  placeholder="Describe your item in detail. Include brand, color, material, condition notes, measurements, and any flaws or special features."
+                                  class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent"></textarea>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Be honest about condition and include all relevant details</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Category & Details -->
-            <div class="form-section">
-                <h3>Category & Details</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="category">Category <span class="required">*</span></label>
-                        <select id="category" name="category" required>
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Category & Details</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Category <span class="text-red-500">*</span>
+                        </label>
+                        <select id="category" 
+                                name="category" 
+                                required
+                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
                             <option value="">Select a category</option>
                             {% for category in categories %}
                                 <option value="{{ category.name }}">{{ category.display_name or category.name.replace('_', ' ').title() }}</option>
@@ -344,17 +77,29 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="size">Size <span class="required">*</span></label>
-                        <input type="text" id="size" name="size" required maxlength="20"
-                               placeholder="e.g. Medium, 8, 32x30, One Size">
-                        <div class="form-help">Include numeric size, letter size, or measurements</div>
+                    <div>
+                        <label for="size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Size <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               id="size" 
+                               name="size" 
+                               required 
+                               maxlength="20"
+                               placeholder="e.g. Medium, 8, 32x30, One Size"
+                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Include numeric size, letter size, or measurements</p>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="condition">Condition <span class="required">*</span></label>
-                    <select id="condition" name="condition" required>
+                <div>
+                    <label for="condition" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Condition <span class="text-red-500">*</span>
+                    </label>
+                    <select id="condition" 
+                            name="condition" 
+                            required
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
                         <option value="">Select condition</option>
                         <option value="new">New with tags</option>
                         <option value="like-new">Like new (worn once or twice)</option>
@@ -366,210 +111,194 @@
             </div>
 
             <!-- Pricing -->
-            <div class="form-section">
-                <h3>Pricing</h3>
-                <div class="form-group">
-                    <label for="price">Price (USD) <span class="required">*</span></label>
-                    <input type="number" id="price" name="price" required min="1" max="10000" step="0.01"
-                           placeholder="25.00">
-                    <div class="form-help">Set a fair price based on brand, condition, and original retail value</div>
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Pricing</h3>
+                
+                <div>
+                    <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Price (USD) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" 
+                           id="price" 
+                           name="price" 
+                           required 
+                           min="1" 
+                           step="0.01"
+                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
                     
-                    <div class="pricing-tips">
-                        <h4>💡 Pricing Tips</h4>
-                        <ul>
-                            <li>Research similar items online to gauge market value</li>
-                            <li>Consider 20-50% of retail price for gently used items</li>
-                            <li>Be competitive with local pricing</li>
-                            <li>Leave room for reasonable negotiation</li>
+                    <div class="mt-4 p-4 bg-primary/5 dark:bg-primary/10 rounded-lg">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">Pricing Tips</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <li>Research similar items to price competitively</li>
+                            <li>Consider the original price and current condition</li>
+                            <li>Factor in any special features or brand value</li>
+                            <li>Be prepared to negotiate with potential buyers</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
             <!-- Location -->
-            <div class="form-section">
-                <h3>Location</h3>
-                <div class="form-group">
-                    <label for="neighborhood">Neighborhood <span class="required">*</span></label>
-                    <select id="neighborhood" name="neighborhood" required>
-                        <option value="">Select your neighborhood</option>
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Location</h3>
+                
+                <div>
+                    <label for="neighborhood" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Neighborhood <span class="text-red-500">*</span>
+                    </label>
+                    <select id="neighborhood" 
+                            name="neighborhood" 
+                            required
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <option value="">Select neighborhood</option>
                         {% for neighborhood in neighborhoods %}
                             <option value="{{ neighborhood.name }}">{{ neighborhood.display_name or neighborhood.name.replace('-', ' ').title() }}</option>
                         {% endfor %}
                     </select>
-                    <div class="form-help">Choose the neighborhood closest to where you'd prefer to meet</div>
                 </div>
             </div>
 
-            <!-- Images -->
-            <div class="form-section">
-                <h3>Photos</h3>
-                <div class="form-group">
-                    <label>Upload Images <span class="required">*</span></label>
-                    <div class="file-upload-area" id="file-upload-area">
-                        <div class="upload-icon">📸</div>
-                        <div class="upload-text">Click to upload photos or drag and drop</div>
-                        <div class="upload-subtext">Upload up to 5 high-quality photos (JPG, PNG, max 5MB each)</div>
-                        <input type="file" id="images" name="images" accept="image/*" multiple style="display: none;">
+            <!-- Photos -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Photos</h3>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Upload Images <span class="text-red-500">*</span>
+                    </label>
+                    <div id="file-upload-area" 
+                         class="mt-1 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-primary dark:hover:border-primary-light transition-colors">
+                        <div class="text-4xl mb-2">📸</div>
+                        <div class="text-gray-900 dark:text-white font-medium">Click to upload photos or drag and drop</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Upload up to 5 high-quality photos (JPG, PNG, max 5MB each)</div>
+                        <input type="file" id="images" name="images" accept="image/*" multiple class="hidden">
                     </div>
-                    <div class="form-help">Good photos sell faster! Include front, back, close-ups of details, and any flaws</div>
-                    <div class="image-preview" id="image-preview"></div>
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Good photos sell faster! Include front, back, close-ups of details, and any flaws</p>
+                    <div id="image-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
                 </div>
             </div>
 
             <!-- Submit -->
-            <div class="submit-section">
-                <button type="submit" class="btn-submit" id="submit-btn">
+            <div class="text-center border-t border-gray-200 dark:border-gray-700 pt-8">
+                <button type="submit" 
+                        id="submit-btn"
+                        class="px-8 py-3 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg font-medium transition-colors">
                     📝 List My Item
                 </button>
-                <div style="margin-top: 1rem; color: var(--text-light);">
+                <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
                     By listing this item, you agree to our community guidelines and terms of service
-                </div>
+                </p>
             </div>
         </form>
-    </main>
+    </div>
+</div>
+{% endblock %}
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('images');
-            const fileUploadArea = document.getElementById('file-upload-area');
-            const imagePreview = document.getElementById('image-preview');
-            const submitBtn = document.getElementById('submit-btn');
-            const form = document.getElementById('sell-form');
-            
-            let selectedFiles = [];
-            const maxFiles = 5;
-            const maxFileSize = 5 * 1024 * 1024; // 5MB
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('images');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const imagePreview = document.getElementById('image-preview');
+        const submitBtn = document.getElementById('submit-btn');
+        const form = document.getElementById('sell-form');
+        const priceInput = document.getElementById('price');
+        
+        let selectedFiles = [];
+        const maxFiles = 5;
+        const maxFileSize = 5 * 1024 * 1024; // 5MB
 
-            fileUploadArea.addEventListener('click', function() {
-                fileInput.click();
-            });
-
-            fileUploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('dragover');
-            });
-
-            fileUploadArea.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-            });
-
-            fileUploadArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-                const files = Array.from(e.dataTransfer.files);
-                handleFiles(files);
-            });
-
-            // File input change handler
-            fileInput.addEventListener('change', function() {
-                const files = Array.from(this.files);
-                handleFiles(files);
-            });
-
-            function handleFiles(files) {
-                const validFiles = files.filter(file => {
-                    if (!file.type.startsWith('image/')) {
-                        alert('Please select only image files.');
-                        return false;
-                    }
-                    if (file.size > maxFileSize) {
-                        alert(`File ${file.name} is too large. Maximum size is 5MB.`);
-                        return false;
-                    }
-                    return true;
-                });
-
-                if (selectedFiles.length + validFiles.length > maxFiles) {
-                    alert(`You can only upload up to ${maxFiles} images.`);
-                    return;
-                }
-
-                validFiles.forEach(file => {
-                    selectedFiles.push(file);
-                    displayImagePreview(file);
-                });
-
-                updateFileInput();
-            }
-
-            function displayImagePreview(file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'preview-item';
-                    previewItem.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview" class="preview-image">
-                        <button type="button" class="remove-image" onclick="removeImage(${selectedFiles.indexOf(file)})">&times;</button>
-                    `;
-                    imagePreview.appendChild(previewItem);
-                };
-                reader.readAsDataURL(file);
-            }
-
-            window.removeImage = function(index) {
-                selectedFiles.splice(index, 1);
-                updateImagePreview();
-                updateFileInput();
-            };
-
-            function updateImagePreview() {
-                imagePreview.innerHTML = '';
-                selectedFiles.forEach(file => {
-                    displayImagePreview(file);
-                });
-            }
-
-            function updateFileInput() {
-                const dt = new DataTransfer();
-                selectedFiles.forEach(file => dt.items.add(file));
-                fileInput.files = dt.files;
-            }
-
-            // Form validation
-            form.addEventListener('submit', function(e) {
-                if (selectedFiles.length === 0) {
-                    e.preventDefault();
-                    alert('Please upload at least one photo of your item.');
-                    return;
-                }
-
-
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Creating Listing...';
-            });
-
-            const titleInput = document.getElementById('title');
-            const descriptionInput = document.getElementById('description');
-
-            function addCharacterCounter(input, maxLength) {
-                const counter = document.createElement('div');
-                counter.className = 'form-help';
-                counter.style.textAlign = 'right';
-                input.parentNode.appendChild(counter);
-
-                function updateCounter() {
-                    const remaining = maxLength - input.value.length;
-                    counter.textContent = `${remaining} characters remaining`;
-                    counter.style.color = remaining < 20 ? '#e74c3c' : 'var(--text-light)';
-                }
-
-                input.addEventListener('input', updateCounter);
-                updateCounter();
-            }
-
-            addCharacterCounter(titleInput, 100);
-            addCharacterCounter(descriptionInput, 1000);
-
-            // Price formatting
-            const priceInput = document.getElementById('price');
-            priceInput.addEventListener('blur', function() {
-                if (this.value) {
-                    this.value = parseFloat(this.value).toFixed(2);
-                }
-            });
+        fileUploadArea.addEventListener('click', function() {
+            fileInput.click();
         });
-    </script>
-</body>
-</html>
+
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('border-primary', 'dark:border-primary-light');
+        });
+
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('border-primary', 'dark:border-primary-light');
+        });
+
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('border-primary', 'dark:border-primary-light');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', function() {
+            const files = Array.from(this.files);
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            const validFiles = files.filter(file => {
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select only image files.');
+                    return false;
+                }
+                if (file.size > maxFileSize) {
+                    alert(`File ${file.name} is too large. Maximum size is 5MB.`);
+                    return false;
+                }
+                return true;
+            });
+
+            if (selectedFiles.length + validFiles.length > maxFiles) {
+                alert(`You can only upload up to ${maxFiles} images.`);
+                return;
+            }
+
+            validFiles.forEach(file => {
+                selectedFiles.push(file);
+                displayImagePreview(file);
+            });
+
+            updateFileInput();
+        }
+
+        function displayImagePreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'relative aspect-w-1 aspect-h-1 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeImage(${selectedFiles.indexOf(file)})"
+                            class="absolute top-2 right-2 w-8 h-8 bg-black/70 hover:bg-black/90 text-white rounded-full flex items-center justify-center transition-colors">
+                        &times;
+                    </button>
+                `;
+                imagePreview.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.removeImage = function(index) {
+            selectedFiles.splice(index, 1);
+            updateImagePreview();
+            updateFileInput();
+        };
+
+        function updateImagePreview() {
+            imagePreview.innerHTML = '';
+            selectedFiles.forEach(file => displayImagePreview(file));
+        }
+
+        function updateFileInput() {
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files;
+        }
+
+        priceInput.addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
+    });
+</script>
+{% endblock %}

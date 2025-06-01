@@ -159,24 +159,47 @@
 
                     {% if listing %}
                         <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                            <div class="flex items-center space-x-4">
-                                {% if listing.images and listing.images|length > 0 %}
-                                    <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
-                                         alt="{{ listing.title }}"
-                                         class="w-16 h-16 object-cover rounded-lg">
-                                {% endif %}
-                                <div>
-                                    <h3 class="font-medium text-gray-900 dark:text-white">{{ listing.title }}</h3>
-                                    <p class="text-primary dark:text-primary-light font-bold">${{ "%.2f"|format(listing.price) }}</p>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span class="text-xs px-2 py-0.5 rounded-full 
-                                            {% if listing.status == 'available' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                            {% elif listing.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
-                                            {% else %}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200{% endif %}">
-                                            {{ listing.status.title() }}
-                                        </span>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    {% if listing.images and listing.images|length > 0 %}
+                                        <img src="{{ url_for('get_image', image_id=listing.images[0]) }}" 
+                                             alt="{{ listing.title }}"
+                                             class="w-16 h-16 object-cover rounded-lg">
+                                    {% endif %}
+                                    <div>
+                                        <h3 class="font-medium text-gray-900 dark:text-white">{{ listing.title }}</h3>
+                                        <p class="text-primary dark:text-primary-light font-bold">${{ "%.2f"|format(listing.price) }}</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-xs px-2 py-0.5 rounded-full 
+                                                {% if listing.status == 'available' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                                {% elif listing.status == 'pending' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                                {% else %}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200{% endif %}">
+                                                {{ listing.status.title() }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <!-- Offer Actions -->
+                                {% if listing.seller_id == current_user.id and latest_offer %}
+                                <div class="flex items-center space-x-2">
+                                    <!-- Counter Offer Button -->
+                                    <button onclick="showCounterOfferModal('{{ latest_offer._id }}')"
+                                            class="px-3 py-1 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white text-sm rounded-lg transition-colors">
+                                        Counter
+                                    </button>
+                                    <!-- Accept Button -->
+                                    <button onclick="acceptOffer('{{ latest_offer._id }}')"
+                                            class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors">
+                                        Accept
+                                    </button>
+                                    <!-- Decline Button -->
+                                    <button onclick="declineOffer('{{ latest_offer._id }}')"
+                                            class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors">
+                                        Decline
+                                    </button>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     {% endif %}
@@ -188,6 +211,25 @@
                         <div class="flex {% if message.sender_id == current_user.id %}justify-end{% endif %}">
                             <div class="max-w-[70%] {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white{% endif %} rounded-lg px-4 py-2 shadow-sm">
                                 <p>{{ message.content }}</p>
+                                {% if message.is_offer and message.transaction_id and message.sender_id != current_user.id %}
+                                    <div class="mt-3 flex items-center space-x-2">
+                                        <!-- Counter Offer Button -->
+                                        <button onclick="showCounterOfferModal('{{ message.transaction_id }}')"
+                                                class="px-3 py-1 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white text-sm rounded-lg transition-colors">
+                                            Counter
+                                        </button>
+                                        <!-- Accept Button -->
+                                        <button onclick="acceptOffer('{{ message.transaction_id }}')"
+                                                class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors">
+                                            Accept
+                                        </button>
+                                        <!-- Decline Button -->
+                                        <button onclick="declineOffer('{{ message.transaction_id }}')"
+                                                class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors">
+                                            Decline
+                                        </button>
+                                    </div>
+                                {% endif %}
                                 <p class="text-xs {% if message.sender_id == current_user.id %}text-white/80{% else %}text-gray-500 dark:text-gray-400{% endif %} mt-1">
                                     {{ message.sent_at.strftime('%I:%M %p') }}
                                 </p>
@@ -375,5 +417,113 @@
             });
         {% endif %}
     });
+
+    function showCounterOfferModal(offerId) {
+        const modal = document.createElement('div');
+        modal.id = 'counterOfferModal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Make Counter Offer</h3>
+                <form id="counterOfferForm" onsubmit="submitCounterOffer(event)">
+                    <input type="hidden" id="offerId" name="offer_id" value="${offerId}">
+                    <div class="mb-4">
+                        <label for="counterPrice" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Counter Price ($)</label>
+                        <input type="number" 
+                               id="counterPrice" 
+                               name="counter_price" 
+                               step="0.01" 
+                               required
+                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" 
+                                onclick="hideCounterOfferModal()"
+                                class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors">
+                            Send Counter Offer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    function hideCounterOfferModal() {
+        const modal = document.getElementById('counterOfferModal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    function submitCounterOffer(event) {
+        event.preventDefault();
+        const offerId = document.getElementById('offerId').value;
+        const counterPrice = document.getElementById('counterPrice').value;
+
+        fetch(`/handle_offer/${offerId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=counter&counter_price=${counterPrice}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload();
+            } else {
+                alert('Failed to send counter offer. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    }
+
+    function acceptOffer(offerId) {
+        if (confirm('Are you sure you want to accept this offer?')) {
+            fetch(`/handle_offer/${offerId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=accept'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.reload();
+                } else {
+                    alert('Failed to accept offer. Please try again.');
+                }
+            });
+        }
+    }
+
+    function declineOffer(offerId) {
+        if (confirm('Are you sure you want to decline this offer?')) {
+            fetch(`/handle_offer/${offerId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=decline'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.reload();
+                } else {
+                    alert('Failed to decline offer. Please try again.');
+                }
+            });
+        }
+    }
 </script>
 {% endblock %}
