@@ -1,73 +1,128 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup | APP</title>
-    <link href="/static/assets/css/styles.css" rel="stylesheet" />
-</head>
-<body>
-    <header>
-        <nav>
-            <div class="logo">
-                <span class="logo-icon">🌱</span> 
-                <a href="/" style="text-decoration: none; color: inherit;">Hathor</a>
-            </div>
-            <div class="nav-links">
-                <a href="{{ url_for('home') }}">Home</a>
-                <a href="{{ url_for('listings') }}">Browse</a>
-                <a href="{{ url_for('how_it_works') }}">How It Works</a>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('messages') }}">Messages</a>
-                {% endif %}
-            </div>
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('sell') }}">
-                    <button class="btn" id="sell-btn">Sell Item</button>
-                </a>
-                    <a href="{{ url_for('liked_items') }}">
-                        <button class="btn">Saved</button>
-                    </a>
-                    <a href="{{ url_for('logout') }}">
-                        <button class="btn">Logout</button>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('signup') }}">
-                        <button class="btn">Sign Up</button>
-                    </a>
-                    <a href="{{ url_for('login') }}">
-                        <button class="btn">Login</button>
-                    </a>
-                {% endif %}
-            </div>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <div class="auth-container">
-        <div class="auth-form">
-            <h1>Create an Account</h1>
-            <p>Please fill in your details to sign up.</p>
-            <form method="POST" action="/signup">
-                <input type="text" name="username" placeholder="Username" required autocomplete="username">
-                <input type="email" name="email" placeholder="Email" required autocomplete="email">
-                <input type="password" name="password" placeholder="Password" required autocomplete ="new-password">
-                <select name="school" required>
-                    <option value="" disabled selected>Select your school</option>
-                    <option value="The Athenian School">The Athenian School</option>
-                    <option value="Dougherty Valley High">Dougherty Valley High</option>
-                    <option value="Monte Vista High">Monte Vista High</option>
-                    <option value="San Ramon Valley High">San Ramon Valley High</option>
-                    <option value="Bentley School">Bentley School</option>
-                </select>
-                <button type="submit">Sign Up</button>
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-md w-full">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8">
+            <div class="flex justify-center mb-4">
+                <div class="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                    <span class="text-3xl">🌱</span>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Create your account</h2>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Join our community and start buying and selling sustainably
+            </p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6">
+                    {% for category, message in messages %}
+                        <div class="p-4 mb-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Signup Form -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+            <form class="p-6 space-y-6" method="POST">
+                <!-- Username -->
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Username
+                    </label>
+                    <input type="text" 
+                           id="username" 
+                           name="username" 
+                           required
+                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent"
+                           placeholder="Choose a unique username">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Email address
+                    </label>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           required
+                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent"
+                           placeholder="Enter your email">
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Password
+                    </label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           required
+                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent"
+                           placeholder="Create a strong password">
+                </div>
+
+                <!-- School Selection -->
+                <div>
+                    <label for="school" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        School
+                    </label>
+                    <select id="school" 
+                            name="school" 
+                            required
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                        <option value="" disabled selected>Select your school</option>
+                        <option value="The Athenian School">The Athenian School</option>
+                        <option value="Dougherty Valley High">Dougherty Valley High</option>
+                        <option value="Monte Vista High">Monte Vista High</option>
+                        <option value="San Ramon Valley High">San Ramon Valley High</option>
+                        <option value="Bentley School">Bentley School</option>
+                    </select>
+                </div>
+
+                <!-- Terms -->
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        <input type="checkbox" 
+                               id="terms" 
+                               name="terms" 
+                               required
+                               class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:focus:ring-primary-light">
+                    </div>
+                    <div class="ml-3">
+                        <label for="terms" class="text-sm text-gray-600 dark:text-gray-400">
+                            I agree to the <a href="#" class="text-primary dark:text-primary-light hover:underline">Terms of Service</a> and <a href="#" class="text-primary dark:text-primary-light hover:underline">Privacy Policy</a>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full py-3 px-4 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors flex items-center justify-center">
+                    <span class="mr-2">Create Account</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                </button>
             </form>
-            <p>Already have an account? <a href="/login">Log in</a></p>
         </div>
-        <div class="auth-image">
-            <img src="/static/assets/css/imgs/photo-1700901555562-952f0008a11f.jpeg" alt="A beautiful example photo" width="3000px" height="4000px">
-        </div>
+
+        <!-- Login Link -->
+        <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+            Already have an account?
+            <a href="{{ url_for('login') }}" class="text-primary dark:text-primary-light hover:underline font-medium">
+                Sign in instead
+            </a>
+        </p>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

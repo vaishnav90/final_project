@@ -183,7 +183,7 @@ def signup():
             'profile': {
                 'first_name': '',
                 'last_name': '',
-                'avatar': '',
+                'avatar': '/static/profile_images/vaishnav_pic.png' if email == 'vaishnavanand90@gmail.com' else '',
                 'bio': '',
                 'school': school,
                 'neighborhood': '',
