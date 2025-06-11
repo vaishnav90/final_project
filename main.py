@@ -14,6 +14,7 @@ from bson import ObjectId
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 from dotenv import load_dotenv
+import pandas as pd
 
 # Load environment variables
 load_dotenv()
@@ -72,6 +73,7 @@ neighborhoods_collection = db['neighborhoods']
 images_collection = db['images']
 offers_collection = db['offers']
 flags_collection = db['flags']
+schools_collection = db['schools']
 
 # Email configuration
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
@@ -94,8 +96,62 @@ UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'static/uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Ensure upload directory exists
+# Public schools data processing
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+df = pd.read_excel('static/assets/schooldirectories/publicschools.xlsx')
+
+school_col = 'Unnamed: 6'
+county_col = 'Unnamed: 4'         
+exclude_col1 = 'Unnamed: 3'       
+exclude_col2 = 'Unnamed: 32'      
+
+keywords_to_exclude = ['Closed', 'ELEM', 'INTMIDJR', 'PS', 'A', ]
+keywords_to_exclude_name = ['Elementary', 'Middle', 'Adult', 'Childrens', 'preschool']
+
+mask = ~(
+    df[exclude_col1].astype(str).str.contains('|'.join(keywords_to_exclude), case=False, na=False) |
+    df[exclude_col2].astype(str).str.contains('|'.join(keywords_to_exclude), case=False, na=False) |
+    df[school_col].astype(str).str.contains('|'.join(keywords_to_exclude_name), case=False, na=False)
+)
+filtered = df[mask][[school_col, county_col]].rename(columns={school_col: 'School', county_col: 'County'})
+filtered['Type'] = 'Public'
+
+private_df = pd.read_excel('static/assets/schooldirectories/privateschools.xlsx')
+
+private_school_col = 'Unnamed: 2'      
+private_county_col = 'Unnamed: 1'           
+private_grade_end_col = 'Unnamed: 5'           
+
+private_keywords_to_exclude = ['K', '3', '4', '5', '6', '7', '8']
+private_keywords_to_exclude_name = ['preschool', 'elementary', 'middle']
+
+private_mask = ~(
+    private_df[private_grade_end_col].astype(str).str.contains('|'.join(private_keywords_to_exclude), case=False, na=False) |
+    private_df[private_school_col].astype(str).str.contains('|'.join(private_keywords_to_exclude_name), case=False, na=False)
+)
+private_filtered = private_df[private_mask][[private_school_col, private_county_col]].rename(
+    columns={private_school_col: 'School', private_county_col: 'County'}
+)
+private_filtered['Type'] = 'Private' 
+
+# --- Combine and Insert ---
+all_schools = pd.concat([filtered, private_filtered], ignore_index=True)
+
+schools_collection.delete_many({})
+if not all_schools.empty:
+    schools_collection.insert_many(all_schools.to_dict('records'))
+
+#school search API
+@app.route('/api/schools')
+def api_schools():
+    query = request.args.get('q', '').strip().lower()
+    schools = []
+    for school in schools_collection.find({}, {'_id': 0, 'School': 1, 'County': 1}):
+        school_name = str(school.get('School', '') or '')
+        county = str(school.get('County', '') or '')
+        if query in school_name.lower() or query in county.lower():
+            schools.append({'school': school_name, 'county': county})
+    return jsonify(schools)
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -1540,6 +1596,24 @@ def inject_notifications():
         return {'notifications': notifications}
     return {'notifications': []}
 
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy_policy.html')
+
+@app.route('/tos')
+def tos():
+    return render_template('terms_of_service.html')
+
+@app.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    user_id = ObjectId(current_user.id)
+    # Optionally: delete user's listings, messages, etc. here
+    users_collection.delete_one({'_id': user_id})
+    logout_user()
+    flash('Your account has been deleted.', 'success')
+    return redirect(url_for('landing'))
+
 @app.route('/flag_listing/<listing_id>', methods=['POST'])
 @login_required
 def flag_listing(listing_id):
@@ -1644,7 +1718,7 @@ def flag_status(listing_id):
 if __name__ == '__main__':
     # Use environment variables for host and port
     port = int(os.getenv('PORT', 5000))
-    debug = os.getenv('FLASK_ENV', 'production') == 'development'
+    debug = True
     
     socketio.run(app, 
                 host='0.0.0.0',

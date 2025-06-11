@@ -41,21 +41,18 @@
                                name="username" 
                                value="{{ user.username }}" 
                                required
-                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent px-3 py-2">
                     </div>
 
-                    <div>
-                        <label for="school" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">School</label>
-                        <select id="school" 
-                                name="school" 
-                                required
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
-                            <option value="The Athenian School" {% if user.profile.school == 'The Athenian School' %}selected{% endif %}>The Athenian School</option>
-                            <option value="Dougherty Valley High" {% if user.profile.school == 'Dougherty Valley High' %}selected{% endif %}>Dougherty Valley High</option>
-                            <option value="Monte Vista High" {% if user.profile.school == 'Monte Vista High' %}selected{% endif %}>Monte Vista High</option>
-                            <option value="San Ramon Valley High" {% if user.profile.school == 'San Ramon Valley High' %}selected{% endif %}>San Ramon Valley High</option>
-                            <option value="Bentley School" {% if user.profile.school == 'Bentley School' %}selected{% endif %}>Bentley School</option>
-                        </select>
+                    <div class="relative">
+                        <label for="school-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            School
+                        </label>
+                        <input type="text" id="school-search" name="school_search" autocomplete="off"
+                            placeholder="Search for your school or country"
+                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-30 px-3 py-2">
+                        <input type="hidden" id="school-selected" name="school" required>
+                        <div id="school-results" class="absolute left-0 right-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg z-10 hidden px-3 py-2 dark:text-white"></div>
                     </div>
 
                     <!-- Change Password -->
@@ -67,7 +64,7 @@
                                 <input type="password" 
                                        id="current_password" 
                                        name="current_password"
-                                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent px-3 py-2">
                             </div>
 
                             <div class="relative">
@@ -75,13 +72,18 @@
                                 <input type="password" 
                                        id="new_password" 
                                        name="new_password"
-                                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent">
+                                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent px-3 py-2">
                             </div>
                         </div>
                     </div>
 
                     <!-- Submit -->
-                    <div class="flex justify-end pt-4">
+                    <div class="flex justify-between pt-8 mt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button type="button"
+                                onclick="showDeleteAccountModal()"
+                                class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                            Delete Account
+                        </button>
                         <button type="submit" 
                                 class="px-6 py-2 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors">
                             Save Changes
@@ -89,6 +91,7 @@
                     </div>
                 </form>
             </div>
+        </div>
 
         <!-- Listings and Offers -->
         <div class="lg:col-span-2">
@@ -297,7 +300,94 @@
         </form>
     </div>
 </div>
+
+<!-- Delete Account Modal -->
+<div id="deleteAccountModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-8 max-w-md w-full mx-4">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Delete Account</h3>
+        <p class="mb-6 text-gray-700 dark:text-gray-300">
+            Are you sure you want to delete your account? This action cannot be undone.
+        </p>
+        <form method="POST" action="{{ url_for('delete_account') }}">
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="hideDeleteAccountModal()"
+                        class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                    Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
+
+<style>
+.relative { overflow: visible !important; }
+
+/* Dropdown container */
+.relative { overflow: visible !important; }
+#school-results {
+    max-height: 20rem;
+    overflow-y: auto;
+    z-index: 50 !important;
+    box-shadow: 0 8px 35px 0 rgba(0,0,0,0.25);
+    border: none;
+    background: #23272f; /* subtle dark background for dropdown */
+    padding: 0.5rem 0;
+}
+.school-result-item {
+    background: #1e293b; /* Tailwind slate-800 or your primary color */
+    border-radius: 0.5rem;
+    margin: 0.25rem 0.5rem;
+    font-weight: normal;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    transition: 
+        background 0.2s,
+        transform 0.15s cubic-bezier(.4,2,.6,1),
+        box-shadow 0.2s;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+}
+.school-result-item:hover {
+    background: #475569; /* Tailwind slate-600, lighter grey */
+    color: #fff;
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+body.dark #school-results,
+body.dark-mode #school-results,
+html.dark #school-results {
+    background: #23272f;
+}
+
+.school-result-item {
+    background: #f3f4f6;
+    color: #111827;
+    /* ...other styles... */
+}
+.school-result-item:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+body.dark .school-result-item,
+body.dark-mode .school-result-item,
+html.dark .school-result-item {
+    color: #fff !important;
+    background: #1e293b !important;
+}
+body.dark .school-result-item:hover,
+body.dark-mode .school-result-item:hover,
+html.dark .school-result-item:hover {
+    color: #fff !important;
+    background: #475569 !important;
+}
+</style>
 
 {% block scripts %}
 <script>
@@ -409,5 +499,70 @@
             });
         }
     }
+
+    const input = document.getElementById('school-search');
+    const results = document.getElementById('school-results');
+    const hidden = document.getElementById('school-selected');
+
+    input.addEventListener('input', function() {
+        const q = input.value.trim();
+        hidden.value = "";
+        if (q.length < 2) {
+            results.innerHTML = '';
+            results.classList.add('hidden');
+            return;
+        }
+        fetch(`/api/schools?q=${encodeURIComponent(q)}`)
+            .then(res => res.json())
+            .then(data => {
+                results.innerHTML = '';
+                if (data.length === 0) {
+                    // Show a friendly message with a contact link if no schools found
+                    const div = document.createElement('div');
+                    div.className = "school-result-item";
+                    div.innerHTML = `Couldn't find your school? <a href="mailto:asherburdeny@gmail.com" class="underline text-blue-300 hover:text-blue-400" target="_blank">Contact us to add it</a>`;
+                    results.appendChild(div);
+                    results.classList.remove('hidden');
+                    return;
+                }
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.textContent = `${item.school} (${item.county})`;
+                    div.className = "school-result-item";
+                    div.onclick = () => {
+                        input.value = item.school;
+                        hidden.value = item.school;
+                        results.innerHTML = '';
+                        results.classList.add('hidden');
+                    };
+                    results.appendChild(div);
+                });
+                results.classList.remove('hidden');
+            });
+    });
+
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !results.contains(e.target)) {
+            results.classList.add('hidden');
+        }
+    });
+
+    // Prevent form submit if no valid school selected
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!hidden.value || hidden.value !== input.value) {
+            e.preventDefault();
+            alert("Please select a school from the list.");
+        }
+    });
+
+    function showDeleteAccountModal() {
+    document.getElementById('deleteAccountModal').classList.remove('hidden');
+    document.getElementById('deleteAccountModal').classList.add('flex');
+}
+    function hideDeleteAccountModal() {
+    document.getElementById('deleteAccountModal').classList.add('hidden');
+    document.getElementById('deleteAccountModal').classList.remove('flex');
+}
 </script>
 {% endblock %}
