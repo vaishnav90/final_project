@@ -99,48 +99,71 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Public schools data processing
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-df = pd.read_excel('static/assets/schooldirectories/publicschools.xlsx')
 
-school_col = 'Unnamed: 6'
-county_col = 'Unnamed: 4'         
-exclude_col1 = 'Unnamed: 3'       
-exclude_col2 = 'Unnamed: 32'      
+def load_school_data():
+    """Load school data from Excel files"""
+    try:
+        # Get the directory where main.py is located
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        public_schools_path = os.path.join(base_dir, 'static', 'assets', 'schooldirectories', 'publicschools.xlsx')
+        private_schools_path = os.path.join(base_dir, 'static', 'assets', 'schooldirectories', 'privateschools.xlsx')
+        
+        # Check if files exist
+        if not os.path.exists(public_schools_path):
+            print(f"Warning: Public schools file not found at {public_schools_path}")
+            return
+        if not os.path.exists(private_schools_path):
+            print(f"Warning: Private schools file not found at {private_schools_path}")
+            return
+            
+        df = pd.read_excel(public_schools_path)
+        
+        school_col = 'Unnamed: 6'
+        county_col = 'Unnamed: 4'         
+        exclude_col1 = 'Unnamed: 3'       
+        exclude_col2 = 'Unnamed: 32'      
 
-keywords_to_exclude = ['Closed', 'ELEM', 'INTMIDJR', 'PS', 'A', ]
-keywords_to_exclude_name = ['Elementary', 'Middle', 'Adult', 'Childrens', 'preschool']
+        keywords_to_exclude = ['Closed', 'ELEM', 'INTMIDJR', 'PS', 'A', ]
+        keywords_to_exclude_name = ['Elementary', 'Middle', 'Adult', 'Childrens', 'preschool']
 
-mask = ~(
-    df[exclude_col1].astype(str).str.contains('|'.join(keywords_to_exclude), case=False, na=False) |
-    df[exclude_col2].astype(str).str.contains('|'.join(keywords_to_exclude), case=False, na=False) |
-    df[school_col].astype(str).str.contains('|'.join(keywords_to_exclude_name), case=False, na=False)
-)
-filtered = df[mask][[school_col, county_col]].rename(columns={school_col: 'School', county_col: 'County'})
-filtered['Type'] = 'Public'
+        mask = ~(
+            df[exclude_col1].astype(str).str.contains('|'.join(keywords_to_exclude), case=False, na=False) |
+            df[exclude_col2].astype(str).str.contains('|'.join(keywords_to_exclude), case=False, na=False) |
+            df[school_col].astype(str).str.contains('|'.join(keywords_to_exclude_name), case=False, na=False)
+        )
+        filtered = df[mask][[school_col, county_col]].rename(columns={school_col: 'School', county_col: 'County'})
+        filtered['Type'] = 'Public'
 
-private_df = pd.read_excel('static/assets/schooldirectories/privateschools.xlsx')
+        private_df = pd.read_excel(private_schools_path)
 
-private_school_col = 'Unnamed: 2'      
-private_county_col = 'Unnamed: 1'           
-private_grade_end_col = 'Unnamed: 5'           
+        private_school_col = 'Unnamed: 2'      
+        private_county_col = 'Unnamed: 1'           
+        private_grade_end_col = 'Unnamed: 5'           
 
-private_keywords_to_exclude = ['K', '3', '4', '5', '6', '7', '8']
-private_keywords_to_exclude_name = ['preschool', 'elementary', 'middle']
+        private_keywords_to_exclude = ['K', '3', '4', '5', '6', '7', '8']
+        private_keywords_to_exclude_name = ['preschool', 'elementary', 'middle']
 
-private_mask = ~(
-    private_df[private_grade_end_col].astype(str).str.contains('|'.join(private_keywords_to_exclude), case=False, na=False) |
-    private_df[private_school_col].astype(str).str.contains('|'.join(private_keywords_to_exclude_name), case=False, na=False)
-)
-private_filtered = private_df[private_mask][[private_school_col, private_county_col]].rename(
-    columns={private_school_col: 'School', private_county_col: 'County'}
-)
-private_filtered['Type'] = 'Private' 
+        private_mask = ~(
+            private_df[private_grade_end_col].astype(str).str.contains('|'.join(private_keywords_to_exclude), case=False, na=False) |
+            private_df[private_school_col].astype(str).str.contains('|'.join(private_keywords_to_exclude_name), case=False, na=False)
+        )
+        private_filtered = private_df[private_mask][[private_school_col, private_county_col]].rename(
+            columns={private_school_col: 'School', private_county_col: 'County'}
+        )
+        private_filtered['Type'] = 'Private' 
 
-# --- Combine and Insert ---
-all_schools = pd.concat([filtered, private_filtered], ignore_index=True)
+        # --- Combine and Insert ---
+        all_schools = pd.concat([filtered, private_filtered], ignore_index=True)
 
-schools_collection.delete_many({})
-if not all_schools.empty:
-    schools_collection.insert_many(all_schools.to_dict('records'))
+        schools_collection.delete_many({})
+        if not all_schools.empty:
+            schools_collection.insert_many(all_schools.to_dict('records'))
+            print(f"Loaded {len(all_schools)} schools into database")
+    except Exception as e:
+        print(f"Error loading school data: {e}")
+
+# Load school data when the app starts
+load_school_data()
 
 #school search API
 @app.route('/api/schools')
