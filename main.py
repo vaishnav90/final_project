@@ -14,6 +14,7 @@ from bson import ObjectId
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 from dotenv import load_dotenv
+import eventlet
 
 # Load environment variables
 load_dotenv()
@@ -21,8 +22,8 @@ load_dotenv()
 app = Flask(__name__)
 
 # Get the production URL from environment variable or default to localhost
-PRODUCTION_URL = os.getenv('PRODUCTION_URL', 'http://localhost:5000')
-ALLOWED_ORIGINS = [PRODUCTION_URL, 'http://localhost:5000', 'http://127.0.0.1:5000']
+PRODUCTION_URL = os.getenv('PRODUCTION_URL', 'http://localhost:5001')
+ALLOWED_ORIGINS = [PRODUCTION_URL, 'http://localhost:5001', 'http://127.0.0.1:5001']
 
 # Configure CORS
 CORS(app, resources={
@@ -1642,12 +1643,15 @@ def flag_status(listing_id):
         }), 500
 
 if __name__ == '__main__':
+    print("Starting server...")
     # Use environment variables for host and port
-    port = int(os.getenv('PORT', 5000))
-    debug = os.getenv('FLASK_ENV', 'production') == 'development'
+    port = int(os.getenv('PORT', 5001))
+    debug = True  # Enable debug mode for more information
     
+    print(f"Server will start on port {port}")
     socketio.run(app, 
                 host='0.0.0.0',
                 port=port,
                 debug=debug,
                 allow_unsafe_werkzeug=True)
+    print("Server started!")

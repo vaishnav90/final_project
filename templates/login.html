@@ -1,16 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
-    <div class="max-w-md w-full">
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
+    <!-- Background gradient effect -->
+    <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10"></div>
+    
+    <!-- Animated background circles -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="circle-1"></div>
+        <div class="circle-2"></div>
+        <div class="circle-3"></div>
+    </div>
+
+    <div class="max-w-md w-full relative">
         <!-- Logo and Title -->
-        <div class="text-center mb-8">
+        <div class="text-center mb-8 animate-fade-in">
             <div class="flex justify-center mb-4">
-                <div class="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                <div class="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center transform hover:scale-110 transition-transform duration-300">
                     <span class="text-3xl">🌱</span>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h2>
+            <h2 class="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Welcome back</h2>
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 Sign in to continue to your account
             </p>
@@ -21,7 +31,7 @@
             {% if messages %}
                 <div class="mb-6">
                     {% for category, message in messages %}
-                        <div class="p-4 mb-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
+                        <div class="p-4 mb-4 rounded-lg animate-slide-in {% if category == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
                             {{ message }}
                         </div>
                     {% endfor %}
@@ -30,28 +40,28 @@
         {% endwith %}
 
         <!-- Login Form -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-            <form class="p-6 space-y-6" method="POST">
+        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden transform hover:scale-[1.01] transition-all duration-300 animate-slide-up">
+            <form class="p-8 space-y-8" method="POST">
                 <!-- Email -->
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <div class="animate-fade-in space-y-3" style="animation-delay: 100ms;">
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Email address
                     </label>
                     <input type="email" 
                            id="email" 
                            name="email" 
                            required
-                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent"
+                           class="w-full h-12 rounded-lg border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent transition-all duration-300"
                            placeholder="Enter your email">
                 </div>
 
                 <!-- Password -->
-                <div>
-                    <div class="flex items-center justify-between mb-1">
+                <div class="animate-fade-in space-y-3" style="animation-delay: 200ms;">
+                    <div class="flex items-center justify-between">
                         <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Password
                         </label>
-                        <a href="#" class="text-sm text-primary dark:text-primary-light hover:underline">
+                        <a href="#" class="text-sm text-primary dark:text-primary-light hover:text-accent transition-colors duration-300">
                             Forgot password?
                         </a>
                     </div>
@@ -59,26 +69,27 @@
                            id="password" 
                            name="password" 
                            required
-                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent"
+                           class="w-full h-12 rounded-lg border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent transition-all duration-300"
                            placeholder="Enter your password">
                 </div>
 
                 <!-- Remember Me -->
-                <div class="flex items-center">
+                <div class="flex items-center animate-fade-in pt-2" style="animation-delay: 300ms;">
                     <input type="checkbox" 
                            id="remember" 
                            name="remember"
-                           class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:focus:ring-primary-light">
-                    <label for="remember" class="ml-2 block text-sm text-gray-600 dark:text-gray-400">
+                           class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary dark:focus:ring-primary-light transition-colors duration-300">
+                    <label for="remember" class="ml-3 block text-sm text-gray-600 dark:text-gray-400">
                         Remember me
                     </label>
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        class="w-full py-3 px-4 bg-primary hover:bg-primary-dark dark:bg-primary-light dark:hover:bg-primary text-white rounded-lg transition-colors flex items-center justify-center group">
+                        class="w-full h-12 px-4 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary text-white rounded-lg transition-all duration-500 flex items-center justify-center group animate-fade-in mt-6"
+                        style="animation-delay: 400ms;">
                     <span class="mr-2">Sign in</span>
-                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                 </button>
@@ -86,12 +97,101 @@
         </div>
 
         <!-- Signup Link -->
-        <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400 animate-fade-in" style="animation-delay: 500ms;">
             Don't have an account?
-            <a href="{{ url_for('signup') }}" class="text-primary dark:text-primary-light hover:underline font-medium">
+            <a href="{{ url_for('signup') }}" class="text-primary dark:text-primary-light hover:text-accent transition-colors duration-300 font-medium">
                 Create one now
             </a>
         </p>
     </div>
 </div>
+
+<style>
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slide-up {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slide-in {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fade-in 0.6s ease-out forwards;
+    }
+
+    .animate-slide-up {
+        animation: slide-up 0.6s ease-out forwards;
+    }
+
+    .animate-slide-in {
+        animation: slide-in 0.6s ease-out forwards;
+    }
+
+    .circle-1, .circle-2, .circle-3 {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+    }
+
+    .circle-1 {
+        width: 300px;
+        height: 300px;
+        background: rgba(139, 92, 246, 0.15);
+        top: -100px;
+        right: -100px;
+        animation: float 8s ease-in-out infinite;
+    }
+
+    .circle-2 {
+        width: 200px;
+        height: 200px;
+        background: rgba(236, 72, 153, 0.15);
+        bottom: -50px;
+        left: -50px;
+        animation: float 6s ease-in-out infinite reverse;
+    }
+
+    .circle-3 {
+        width: 150px;
+        height: 150px;
+        background: rgba(139, 92, 246, 0.1);
+        top: 40%;
+        right: 25%;
+        animation: float 7s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translate(0, 0);
+        }
+        50% {
+            transform: translate(20px, 20px);
+        }
+    }
+</style>
 {% endblock %}

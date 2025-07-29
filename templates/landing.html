@@ -6,6 +6,7 @@
     <title>Welcome to Hathor - The Future of Trading</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --primary: #8B5CF6;
@@ -75,6 +76,9 @@
             mix-blend-mode: screen;
             will-change: transform;
             transform: translate(-50%, -50%);
+            -webkit-transform: translate(-50%, -50%);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
 
         body.dark .cursor-glow {
@@ -89,6 +93,8 @@
             position: relative;
             overflow: hidden;
             padding: 2rem;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
         .gradient-bg {
@@ -104,18 +110,17 @@
             );
             z-index: 0;
             filter: blur(100px);
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
             animation: gradientMove 20s ease infinite;
         }
 
         @keyframes gradientMove {
-            0% {
+            0%, 100% {
                 background-position: 0% 50%;
             }
             50% {
                 background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
             }
         }
 
@@ -124,66 +129,86 @@
             text-align: center;
             z-index: 2;
             position: relative;
+            padding-bottom: 120px;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
 
-        .animated-showcase {
+        .carousel {
             position: relative;
-            width: 800px;
-            height: 400px;
-            margin: 2rem auto;
-            perspective: 1000px;
+            max-width: 500px;
+            margin: 2rem auto 0 auto;
         }
 
-        .clothing-item {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            background: rgba(139, 92, 246, 0.1);
-            border: 2px solid var(--primary);
-            border-radius: 20px;
+        .carousel-slide {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            transition: all 0.5s ease;
-            backdrop-filter: blur(5px);
-            transform-style: preserve-3d;
-            animation: colorPulse 3s infinite;
+            transition: opacity 0.7s;
         }
 
-        @keyframes colorPulse {
-            0% {
-                border-color: var(--primary);
-                box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
-            }
-            50% {
-                border-color: var(--accent);
-                box-shadow: 0 0 30px rgba(236, 72, 153, 0.2);
-            }
-            100% {
-                border-color: var(--primary);
-                box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
-            }
+        .carousel-slide.active {
+            display: flex;
         }
 
-        .clothing-item svg {
-            width: 60%;
-            height: 60%;
-            fill: var(--primary);
+        .carousel-slide img {
+            width: 320px;
+            height: 320px;
+            object-fit: cover;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(139,92,246,0.12);
+        }
+
+        .carousel-slide .cta-button {
+            margin-top: 1.2rem;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .carousel-slide .cta-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .carousel-prev, .carousel-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--primary);
+            cursor: pointer;
+            z-index: 2;
+            padding: 10px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
-            filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.3));
         }
 
-        .clothing-item:hover {
-            transform: translateY(-10px) scale(1.1);
-            border-color: var(--accent);
-            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);
-            animation: none;
+        .carousel-prev:hover, .carousel-next:hover {
+            background: rgba(139, 92, 246, 0.1);
         }
 
-        .clothing-item:hover svg {
-            fill: var(--accent);
-            transform: rotate(10deg);
-            filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.5));
+        .carousel-prev {
+            left: -40px;
+        }
+
+        .carousel-next {
+            right: -40px;
+            color: var(--accent);
+        }
+
+        .carousel-prev:hover {
+            left: -35px;
+        }
+
+        .carousel-next:hover {
+            right: -35px;
+        }
+
+        .carousel-prev:disabled, .carousel-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .fashion-circle {
@@ -193,24 +218,26 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            -webkit-transform: translate(-50%, -50%);
             border: 2px solid var(--primary);
             border-radius: 50%;
             opacity: 0.1;
-            animation: rotateAndPulse 20s linear infinite;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            will-change: transform;
+            animation: rotateAndPulse 30s linear infinite;
         }
 
         @keyframes rotateAndPulse {
-            0% {
+            0%, 100% {
                 transform: translate(-50%, -50%) rotate(0deg) scale(1);
+                -webkit-transform: translate(-50%, -50%) rotate(0deg) scale(1);
                 border-color: var(--primary);
             }
             50% {
                 transform: translate(-50%, -50%) rotate(180deg) scale(1.1);
+                -webkit-transform: translate(-50%, -50%) rotate(180deg) scale(1.1);
                 border-color: var(--accent);
-            }
-            100% {
-                transform: translate(-50%, -50%) rotate(360deg) scale(1);
-                border-color: var(--primary);
             }
         }
 
@@ -241,7 +268,7 @@
         .tagline {
             font-size: 1.5rem;
             margin-bottom: 2rem;
-            opacity: 0.9;
+            opacity: 1;
             background: linear-gradient(
                 45deg,
                 var(--primary-light),
@@ -320,11 +347,13 @@
                 width: 100%;
                 height: 300px;
                 margin: 1rem auto;
+                perspective: none;
             }
 
             .clothing-item {
                 width: 60px;
                 height: 60px;
+                animation: none;
             }
 
             .clothing-item svg {
@@ -357,21 +386,46 @@
 
             .hero {
                 padding: 1rem;
-                min-height: 100dvh; /* Use dynamic viewport height for mobile */
+                min-height: 100dvh;
             }
 
             .cursor-glow {
-                display: none; /* Hide cursor glow on mobile */
+                display: none;
             }
 
             .fashion-circle {
                 width: 300px;
                 height: 300px;
+                animation-duration: 40s;
+            }
+
+            .gradient-bg {
+                filter: blur(50px);
+            }
+
+            @supports (-webkit-touch-callout: none) {
+                /* CSS specific to iOS devices */
+                .clothing-item {
+                    backdrop-filter: none;
+                    background: rgba(139, 92, 246, 0.2);
+                }
+                
+                .gradient-bg {
+                    filter: blur(30px);
+                }
+                
+                .fashion-circle {
+                    animation-duration: 60s;
+                }
             }
 
             .footer {
                 padding: 0.8rem;
                 font-size: 0.8rem;
+            }
+
+            .hero-content {
+                padding-bottom: 100px;
             }
         }
 
@@ -404,7 +458,6 @@
             }
         }
 
-        /* Fix iOS Safari 100vh issue */
         @supports (-webkit-touch-callout: none) {
             .hero {
                 min-height: -webkit-fill-available;
@@ -443,6 +496,498 @@
         .footer p:hover {
             opacity: 1;
         }
+
+        .goals-section {
+            padding: 6rem 2rem;
+            position: relative;
+            overflow: hidden;
+            opacity: 1;
+            transform: none;
+            text-align: center;
+        }
+
+        .goals-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            opacity: 1;
+            transform: none;
+        }
+
+        .goal-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            opacity: 1;
+            transform: none;
+        }
+
+        .goal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                45deg,
+                rgba(139, 92, 246, 0.1),
+                rgba(236, 72, 153, 0.1)
+            );
+            transform: translateY(100%);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1;
+        }
+
+        .goal-card:hover::before {
+            transform: translateY(0);
+        }
+
+        .goal-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(236, 72, 153, 0.15);
+        }
+
+        .goal-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .team-section {
+            padding: 6rem 2rem;
+            position: relative;
+            overflow: hidden;
+            opacity: 1;
+            transform: none;
+            text-align: center;
+        }
+
+        .team-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            opacity: 1;
+            transform: none;
+        }
+
+        .team-member {
+            text-align: center;
+            width: 300px;
+            position: relative;
+            perspective: 1000px;
+            padding: 2rem;
+            border-radius: 20px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+            transform-style: preserve-3d;
+            will-change: transform;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 1;
+            transform: none;
+            pointer-events: auto;
+        }
+
+        .team-member-content {
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            pointer-events: auto;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+        }
+
+        .team-member:hover .team-member-content {
+            transform: translateZ(20px);
+        }
+
+        .team-member-image {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            border: 3px solid var(--primary);
+            padding: 5px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-member-image::before {
+            content: '';
+            position: absolute;
+            top: 5px;  /* Match padding */
+            left: 5px;  /* Match padding */
+            right: 5px;  /* Match padding */
+            bottom: 5px;  /* Match padding */
+            border-radius: 50%;
+            background: linear-gradient(
+                45deg,
+                rgba(139, 92, 246, 0.2),
+                rgba(236, 72, 153, 0.2)
+            );
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .team-member:hover .team-member-image::before {
+            opacity: 1;
+        }
+
+        .team-member-image::after {
+            display: none;
+        }
+
+        .team-member:hover .team-member-image {
+            border-color: var(--accent);
+            transform: scale(1.05) translateZ(30px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+        }
+
+        .team-member h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .team-member:hover h3 {
+            color: var(--accent);
+            transform: translateZ(20px);
+        }
+
+        .team-member p {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-bottom: 1rem;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .team-member:hover p {
+            opacity: 1;
+            transform: translateZ(15px);
+            color: var(--accent);
+        }
+
+        .team-member p:last-child {
+            font-style: italic;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-top: 1rem;
+            position: relative;
+            padding-top: 1rem;
+        }
+
+        .team-member p:last-child::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(
+                to right,
+                var(--primary),
+                var(--accent)
+            );
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .team-member:hover p:last-child::before {
+            width: 50px;
+        }
+
+        @media (max-width: 768px) {
+            .team-member {
+                width: 280px;
+                padding: 1.5rem;
+            }
+
+            .team-member-image {
+                width: 160px;
+                height: 160px;
+            }
+        }
+
+        .section-title {
+            position: relative;
+            display: block;
+            text-align: center;
+            width: 100%;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(
+                to right,
+                var(--primary) 20%,
+                var(--accent) 40%,
+                var(--accent-light) 60%,
+                var(--primary-light) 80%
+            );
+            background-size: 200% auto;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            opacity: 1;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(
+                to right,
+                var(--primary),
+                var(--accent)
+            );
+        }
+
+        .section-title.active::after {
+            width: 100px;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            animation: fadeInUp 2s ease-out 1s forwards;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .scroll-text {
+            color: var(--primary);
+            font-size: 1rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .scroll-arrow {
+            width: 30px;
+            height: 50px;
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scroll-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 8px;
+            animation: scrollDot 2s ease-out infinite;
+        }
+
+        @keyframes scrollDot {
+            0% {
+                top: 8px;
+                opacity: 1;
+            }
+            70% {
+                opacity: 1;
+            }
+            100% {
+                top: 32px;
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .scroll-indicator {
+                bottom: 30px;
+            }
+
+            .scroll-arrow {
+                width: 24px;
+                height: 40px;
+            }
+
+            .scroll-text {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Add social media button styles */
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .social-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(
+                45deg,
+                var(--primary),
+                var(--accent)
+            );
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        .social-button:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .social-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                45deg,
+                var(--accent),
+                var(--primary)
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .social-button:hover::before {
+            opacity: 1;
+        }
+
+        .social-button i {
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .team-member:hover .social-button {
+            pointer-events: auto;
+        }
+
+        .carousel-coverflow {
+            position: relative;
+            max-width: 700px;
+            margin: 2rem auto 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 370px;
+        }
+        .carousel-slide {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) scale(0.7);
+            opacity: 0.3;
+            z-index: 1;
+            transition: transform 0.8s cubic-bezier(.77,0,.18,1), opacity 0.8s cubic-bezier(.77,0,.18,1), z-index 0s;
+            pointer-events: none;
+        }
+        .carousel-slide.center {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+            z-index: 3;
+            pointer-events: auto;
+        }
+        .carousel-slide.left {
+            transform: translateX(-180%) scale(0.7);
+            opacity: 0.15;
+            z-index: 2;
+        }
+        .carousel-slide.right {
+            transform: translateX(80%) scale(0.7);
+            opacity: 0.15;
+            z-index: 2;
+        }
+        .category-card {
+  transition: box-shadow 0.2s, transform 0.2s, background 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+.category-card:hover {
+  box-shadow: 0 8px 32px rgba(236,72,153,0.18), 0 2px 8px rgba(139,92,246,0.10);
+  transform: scale(1.06) translateY(-4px);
+  background: linear-gradient(90deg, rgba(139,92,246,0.10) 0%, rgba(236,72,153,0.10) 100%);
+}
+.category-card:hover i {
+  color: var(--accent);
+  transition: color 0.3s cubic-bezier(.77,0,.18,1);
+}
+.category-card i {
+  transition: color 0.3s cubic-bezier(.77,0,.18,1);
+}
+@media (prefers-color-scheme: dark) {
+  .category-card {
+    background: #23263a;
+    border-color: #35385a;
+  }
+  .category-card:hover {
+    background: linear-gradient(90deg, rgba(139,92,246,0.18) 0%, rgba(236,72,153,0.18) 100%);
+  }
+}
     </style>
 </head>
 <body>
@@ -452,21 +997,148 @@
     
     <section class="hero">
         <div class="hero-content">
-            <h1 class="reveal-text">Welcome to Hathor</h1>
-            <p class="tagline">Your School's Sustainable Fashion Marketplace</p>
-            <div class="animated-showcase">
-                <div class="fashion-circle"></div>
+            <h1 class="reveal-text">Discover Your Next Look</h1>
+            <p class="tagline">The Ultimate Fashion Marketplace for Trendsetters & Conscious Shoppers</p>
+            <!-- Rotating Featured Product Carousel (Coverflow Style) -->
+            <div class="carousel-coverflow" id="featured-carousel" style="position: relative; max-width: 700px; margin: 2rem auto 0 auto; display: flex; justify-content: center; align-items: center; height: 370px;">
+                <div class="carousel-slide" data-index="0">
+                    <img src="/static/uploads/princeton.jpg" alt="Princeton Crewneck" style="width: 320px; height: 320px; object-fit: cover; border-radius: 1.5rem; box-shadow: 0 8px 32px rgba(139,92,246,0.12);">
+                    <div style="margin-top: 1.2rem; text-align: center;">
+                       <!-- <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">Trendy Jacket</div>
+                        <div style="font-size: 1rem; color: var(--accent); margin: 0.3rem 0 1rem 0;">Perfect for cool evenings</div> -->
+                    </div>
+                </div>
+                <div class="carousel-slide" data-index="1">
+                    <img src="/static/uploads/coldculturesweatshirt.jpg" alt="Cold Culture Sweatshirt" style="width: 320px; height: 320px; object-fit: cover; border-radius: 1.5rem; box-shadow: 0 8px 32px rgba(236,72,153,0.12);">
+                    <div style="margin-top: 1.2rem; text-align: center;">
+                    <!--    <div style="font-size: 1.3rem; font-weight: 700; color: var(--accent);">Classic Sneakers</div>
+                        <div style="font-size: 1rem; color: var(--primary); margin: 0.3rem 0 1rem 0;">Step up your style</div> -->
+                    </div>
+                </div>
+                <div class="carousel-slide" data-index="2">
+                    <img src="/static/uploads/polo.jpg" alt="Long Sleeve polo" style="width: 320px; height: 320px; object-fit: cover; border-radius: 1.5rem; box-shadow: 0 8px 32px rgba(139,92,246,0.12);">
+                    <div style="margin-top: 1.2rem; text-align: center;">
+                       <!-- <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary);">Summer Dress</div>
+                        <div style="font-size: 1rem; color: var(--accent); margin: 0.3rem 0 1rem 0;">Light, breezy, and beautiful</div> -->
+                    </div>
+                </div>
+                <div class="carousel-slide" data-index="3">
+                    <img src="/static/uploads/shortpolo.jpg" alt="Short sleeve polo" style="width: 320px; height: 320px; object-fit: cover; border-radius: 1.5rem; box-shadow: 0 8px 32px rgba(236,72,153,0.12);">
+                    <div style="margin-top: 1.2rem; text-align: center;">
+                    <!--    <div style="font-size: 1.3rem; font-weight: 700; color: var(--accent);">Classic Sneakers</div>
+                        <div style="font-size: 1rem; color: var(--primary); margin: 0.3rem 0 1rem 0;">Step up your style</div> -->
+                    </div>
+                </div>
             </div>
+            <!-- End Carousel -->
             <div class="cta-buttons">
-                <a href="/signup" class="cta-button primary-cta">Get Started</a>
+                <a href="/signup" class="cta-button primary-cta">Shop Now</a>
                 <a href="/login" class="cta-button secondary-cta">Sign In</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span class="scroll-text">Scroll to explore</span>
+            <div class="scroll-arrow">
+                <div class="scroll-dot"></div>
             </div>
         </div>
     </section>
 
-    <footer class="footer">
+    <!-- Shop by Category Section -->
+    <section class="categories-section" style="padding: 4rem 2rem 2rem 2rem; background: linear-gradient(90deg, rgba(139,92,246,0.07) 0%, rgba(236,72,153,0.07) 100%);">
+        <h2 class="section-title">Shop by Category</h2>
+        <div class="categories-grid" style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; max-width: 1100px; margin: 0 auto;">
+            <a href="#" class="category-card" style="background: white; border-radius: 1.5rem; box-shadow: 0 4px 24px rgba(139,92,246,0.08); padding: 2rem 1.5rem; min-width: 180px; text-align: center; text-decoration: none; color: inherit; transition: box-shadow 0.2s, transform 0.2s; border: 2px solid #f3f4f6;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--primary);"><i class="fas fa-mars"></i></div>
+                <div style="font-weight: 700; font-size: 1.1rem;">Men's</div>
+            </a>
+            <a href="#" class="category-card" style="background: white; border-radius: 1.5rem; box-shadow: 0 4px 24px rgba(236,72,153,0.08); padding: 2rem 1.5rem; min-width: 180px; text-align: center; text-decoration: none; color: inherit; transition: box-shadow 0.2s, transform 0.2s; border: 2px solid #f3f4f6;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--accent);"><i class="fas fa-venus"></i></div>
+                <div style="font-weight: 700; font-size: 1.1rem;">Women's</div>
+            </a>
+            <a href="#" class="category-card" style="background: white; border-radius: 1.5rem; box-shadow: 0 4px 24px rgba(139,92,246,0.08); padding: 2rem 1.5rem; min-width: 180px; text-align: center; text-decoration: none; color: inherit; transition: box-shadow 0.2s, transform 0.2s; border: 2px solid #f3f4f6;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--primary);"><i class="fas fa-hat-cowboy"></i></div>
+                <div style="font-weight: 700; font-size: 1.1rem;">Accessories</div>
+            </a>
+            <a href="#" class="category-card" style="background: white; border-radius: 1.5rem; box-shadow: 0 4px 24px rgba(236,72,153,0.08); padding: 2rem 1.5rem; min-width: 180px; text-align: center; text-decoration: none; color: inherit; transition: box-shadow 0.2s, transform 0.2s; border: 2px solid #f3f4f6;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--accent);"><i class="fas fa-leaf"></i></div>
+                <div style="font-weight: 700; font-size: 1.1rem;">Sustainable</div>
+            </a>
+            <a href="#" class="category-card" style="background: white; border-radius: 1.5rem; box-shadow: 0 4px 24px rgba(139,92,246,0.08); padding: 2rem 1.5rem; min-width: 180px; text-align: center; text-decoration: none; color: inherit; transition: box-shadow 0.2s, transform 0.2s; border: 2px solid #f3f4f6;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--primary);"><i class="fas fa-fire"></i></div>
+                <div style="font-weight: 700; font-size: 1.1rem;">Trending</div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Goals Section -->
+    <section class="goals-section">
+        <h2 class="section-title">Our Mission</h2>
+        <div class="goals-container">
+            <div class="goal-card">
+                <div class="goal-icon">🌱</div>
+                <h3>Sustainable Fashion</h3>
+                <p>Promoting sustainable fashion by giving pre-loved clothing a second life, reducing waste and environmental impact.</p>
+            </div>
+            <div class="goal-card">
+                <div class="goal-icon">🤝</div>
+                <h3>Community Building</h3>
+                <p>Creating a vibrant community of fashion enthusiasts who share, trade, and connect through their love for style within their school.</p>
+            </div>
+            <div class="goal-card">
+                <div class="goal-icon">💫</div>
+                <h3>Affordable Style</h3>
+                <p>Making fashion accessible and affordable while maintaining quality and authenticity in every transaction.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <h2 class="section-title">Meet Our Team</h2>
+        <div class="team-container">
+            <div class="team-member">
+                <div class="team-member-content">
+                    <div class="team-member-image" style="background-image: url('/static/profile_images/vaishnav_pic.png')"></div>
+                    <h3>Vaishnav Anand</h3>
+                    <p>Co-Founder & Lead Developer</p>
+                    <div class="social-links">
+                        <a href="https://github.com/vaishnav90" target="_blank" class="social-button">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/vaishnav-anand/" target="_blank" class="social-button">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="mailto:vaishnavanand90@gmail.com" class="social-button">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="team-member">
+                <div class="team-member-content">
+                    <div class="team-member-image" style="background-image: url('/static/profile_images/asher_pic.png')"></div>
+                    <h3>Asher Burdeny</h3>
+                    <p>Co-Founder & Developer</p>
+                    <div class="social-links">
+                        <a href="https://github.com/AshB-rq" target="_blank" class="social-button">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/asherburdeny/" target="_blank" class="social-button">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="mailto:asherburdeny@gmail.com" class="social-button">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- <footer class="footer">
         <p>Built by Vaishnav Anand & Asher Burdeny</p>
-    </footer>
+    </footer> -->
 
     <script>
         // Initialize GSAP
@@ -515,173 +1187,26 @@
             lastMouseTime = currentTime;
         });
 
-        // Create clothing items with enhanced animations
-        const showcase = document.querySelector('.animated-showcase');
-        const clothingItems = [
-            { icon: 'M12 2L8 6l4 4-4 10h8l-4-10 4-4z', name: 'dress' },
-            { icon: 'M21 4h-3.1c-.5-2.3-2.5-4-4.9-4S8.6 1.7 8.1 4H5C3.3 4 2 5.3 2 7v13c0 1.7 1.3 3 3 3h16c1.7 0 3-1.3 3-3V7c0-1.7-1.3-3-3-3zM13 2c1.3 0 2.4.8 2.8 2h-5.6c.4-1.2 1.5-2 2.8-2z', name: 'shirt' },
-            { icon: 'M7 2L5 22h4l2-15 2 15h4L15 2H7z', name: 'pants' },
-            { icon: 'M12 2L8 6v16h8V6z', name: 'skirt' },
-            { icon: 'M19 4h-4L12 2L9 4H5C3.3 4 2 5.3 2 7v13c0 1.7 1.3 3 3 3h14c1.7 0 3-1.3 3-3V7c0-1.7-1.3-3-3-3z', name: 'jacket' }
-        ];
-
-        // Store original positions and velocities for each item
-        const itemStates = [];
-        const DAMPING = 0.985; // Increased for smoother deceleration
-        const BOUNCE_STRENGTH = 0.9; // Increased bounce
-        const PUSH_STRENGTH = 1.2; // Increased push strength
-        const BASE_MOVEMENT = 0.15; // Reduced for subtler idle animation
-        const ATTRACTION_STRENGTH = 0.03; // Increased attraction to original position
-        const MOUSE_INFLUENCE_RADIUS = 150; // Radius of mouse influence
-        const VELOCITY_CAP = 15; // Maximum velocity
-        let isMobile = window.innerWidth <= 768;
-        let mouseVelocityX = 0;
-        let mouseVelocityY = 0;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
-        let lastMouseTime = performance.now();
-
-        clothingItems.forEach((item, index) => {
-            const element = document.createElement('div');
-            element.className = 'clothing-item';
-            element.innerHTML = `<svg viewBox="0 0 24 24"><path d="${item.icon}"/></svg>`;
-            showcase.appendChild(element);
-
-            // Calculate initial position
-            const radius = isMobile ? 80 : 150; // Smaller radius for mobile
-            const centerX = isMobile ? showcase.clientWidth / 2 : 400;
-            const centerY = isMobile ? showcase.clientHeight / 2 : 200;
-            const angle = (index / clothingItems.length) * Math.PI * 2;
-            const x = Math.cos(angle) * radius + centerX;
-            const y = Math.sin(angle) * radius + centerY;
-
-            // Initialize state
-            itemStates.push({
-                element,
-                x,
-                y,
-                vx: 0,
-                vy: 0,
-                originalX: x,
-                originalY: y,
-                isBeingPushed: false
-            });
-
-            gsap.set(element, { x, y });
-        });
-
-        // Physics update loop
-        let lastTime = performance.now();
-        function updatePhysics() {
-            const currentTime = performance.now();
-            const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
-            lastTime = currentTime;
-
-            const showcaseRect = showcase.getBoundingClientRect();
-
-            itemStates.forEach((state) => {
-                // Add smooth base movement
-                state.vx += (Math.sin(currentTime * 0.001 + state.originalX * 0.1) * BASE_MOVEMENT);
-                state.vy += (Math.cos(currentTime * 0.001 + state.originalY * 0.1) * BASE_MOVEMENT);
-
-                if (!state.isBeingPushed) {
-                    // Apply damping
-                    state.vx *= Math.pow(DAMPING, deltaTime * 60);
-                    state.vy *= Math.pow(DAMPING, deltaTime * 60);
-
-                    // Attraction to original position with easing
-                    const dx = state.originalX - state.x;
-                    const dy = state.originalY - state.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    const attraction = Math.min(distance * ATTRACTION_STRENGTH, 2);
-                    
-                    state.vx += dx * attraction * deltaTime;
-                    state.vy += dy * attraction * deltaTime;
+        // Coverflow carousel logic
+        const slides = document.querySelectorAll('.carousel-slide');
+        let current = 0;
+        function updateCoverflow() {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('center', 'left', 'right');
+                if (i === current) {
+                    slide.classList.add('center');
+                } else if (i === (current - 1 + slides.length) % slides.length) {
+                    slide.classList.add('left');
+                } else if (i === (current + 1) % slides.length) {
+                    slide.classList.add('right');
                 }
-
-                // Mouse influence
-                const dx = lastMouseX - (state.x + 60);
-                const dy = lastMouseY - (state.y + 60);
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < MOUSE_INFLUENCE_RADIUS) {
-                    const influence = Math.pow(1 - distance / MOUSE_INFLUENCE_RADIUS, 2);
-                    state.vx += mouseVelocityX * PUSH_STRENGTH * influence * deltaTime;
-                    state.vy += mouseVelocityY * PUSH_STRENGTH * influence * deltaTime;
-                }
-
-                // Cap velocity
-                const currentVelocity = Math.sqrt(state.vx * state.vx + state.vy * state.vy);
-                if (currentVelocity > VELOCITY_CAP) {
-                    const scale = VELOCITY_CAP / currentVelocity;
-                    state.vx *= scale;
-                    state.vy *= scale;
-                }
-
-                // Update position with smooth interpolation
-                state.x += state.vx * deltaTime * 60;
-                state.y += state.vy * deltaTime * 60;
-
-                // Boundary collision with smooth bounce
-                const margin = 20;
-                const minX = margin;
-                const maxX = showcaseRect.width - 120 - margin;
-                const minY = margin;
-                const maxY = showcaseRect.height - 120 - margin;
-
-                if (state.x < minX) {
-                    state.x = minX;
-                    state.vx = Math.abs(state.vx) * BOUNCE_STRENGTH;
-                }
-                if (state.x > maxX) {
-                    state.x = maxX;
-                    state.vx = -Math.abs(state.vx) * BOUNCE_STRENGTH;
-                }
-                if (state.y < minY) {
-                    state.y = minY;
-                    state.vy = Math.abs(state.vy) * BOUNCE_STRENGTH;
-                }
-                if (state.y > maxY) {
-                    state.y = maxY;
-                    state.vy = -Math.abs(state.vy) * BOUNCE_STRENGTH;
-                }
-
-                // Apply position with smooth transform
-                gsap.to(state.element, {
-                    x: state.x,
-                    y: state.y,
-                    duration: 0.15,
-                    ease: "power2.out"
-                });
-            });
-
-            requestAnimationFrame(updatePhysics);
-        }
-
-        // Initialize physics
-        updatePhysics();
-
-        // Smooth return to original positions
-        function returnToOriginal() {
-            itemStates.forEach((state) => {
-                gsap.to(state, {
-                    x: state.originalX,
-                    y: state.originalY,
-                    vx: 0,
-                    vy: 0,
-                    duration: 1,
-                    ease: "elastic.out(1, 0.5)",
-                    onUpdate: () => {
-                        gsap.to(state.element, {
-                            x: state.x,
-                            y: state.y,
-                            duration: 0.15,
-                            ease: "power2.out"
-                        });
-                    }
-                });
             });
         }
+        setInterval(() => {
+            current = (current + 1) % slides.length;
+            updateCoverflow();
+        }, 2000); //TIME SWITCHED
+        updateCoverflow();
 
         // Update window resize handler
         window.addEventListener('resize', () => {
@@ -705,28 +1230,26 @@
             });
         });
 
-        // Reveal animation for text
+        // Update reveal animation for text
         gsap.from('.reveal-text', {
-            y: 100,
+            y: 50,
             opacity: 0,
             duration: 1,
             ease: 'power3.out'
         });
 
         gsap.from('.tagline', {
-            y: 50,
+            y: 30,
             opacity: 0,
             duration: 1,
             delay: 0.3,
             ease: 'power3.out'
         });
 
-        gsap.from('.cta-buttons', {
-            y: 50,
-            opacity: 0,
-            duration: 1,
-            delay: 0.6,
-            ease: 'power3.out'
+        // Ensure elements are visible by default
+        gsap.set(['.reveal-text', '.tagline'], {
+            opacity: 1,
+            clearProps: 'all'
         });
 
         // Parallax effect on scroll
@@ -737,6 +1260,113 @@
                 rotation: scrolled * 0.05,
                 stagger: 0.02,
                 ease: 'none'
+            });
+        });
+
+        // Update Goals Section Animation
+        const goalsTimeline = gsap.timeline({
+            scrollTrigger: {
+                trigger: '.goals-section',
+                start: 'top 85%', // Trigger slightly earlier
+                toggleActions: 'play none none reverse'
+            }
+        });
+
+        goalsTimeline
+            .from('.goal-card', {
+                y: 20,
+                opacity: 0,
+                duration: 0.4, // Faster duration
+                stagger: 0.1, // Quicker stagger
+                ease: 'power2.out',
+                clearProps: 'all'
+            });
+
+        // Update Team Section Animation
+        const teamTimeline = gsap.timeline({
+            scrollTrigger: {
+                trigger: '.team-section',
+                start: 'top 85%', // Trigger slightly earlier
+                toggleActions: 'play none none reverse'
+            }
+        });
+
+        teamTimeline
+            .from('.team-member', {
+                y: 20,
+                opacity: 0,
+                duration: 0.4, // Faster duration
+                stagger: 0.1, // Quicker stagger
+                ease: 'power2.out',
+                clearProps: 'all'
+            });
+
+        // Ensure sections are visible immediately but elements animate in
+        gsap.set(['.goals-section', '.team-section'], {
+            opacity: 1,
+            y: 0
+        });
+
+        // Make scroll indicator animation faster
+        gsap.to('.scroll-indicator', {
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: '+=100',
+                scrub: 0.5 // Faster scrub
+            },
+            opacity: 0,
+            y: 50
+        });
+
+        // Faster parallax effect
+        gsap.to('.goals-section, .team-section', {
+            yPercent: -10, // Reduced parallax amount
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.goals-section',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.5 // Faster scrub
+            }
+        });
+
+        // Smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    gsap.to(window, {
+                        duration: 1,
+                        scrollTo: {
+                            y: target,
+                            offsetY: 50
+                        },
+                        ease: 'power3.inOut'
+                    });
+                }
+            });
+        });
+
+        // Enhanced hover effects for goal cards
+        document.querySelectorAll('.goal-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                gsap.to(card.querySelector('.goal-icon'), {
+                    scale: 1.2,
+                    rotation: 10,
+                    duration: 0.4,
+                    ease: 'power2.out'
+                });
+            });
+
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card.querySelector('.goal-icon'), {
+                    scale: 1,
+                    rotation: 0,
+                    duration: 0.4,
+                    ease: 'power2.out'
+                });
             });
         });
     </script>
