@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+</head>
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
@@ -82,50 +86,36 @@
                 </div>
 
                 <!-- School Selection -->
-                <div class="animate-fade-in space-y-3" style="animation-delay: 400ms;">
-                    <label for="school" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <div class="relative">
+                    <label for="school-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         School
                     </label>
-                    <select id="school" 
-                            name="school" 
-                            required
-                            class="w-full h-12 rounded-lg border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-primary-light focus:border-transparent transition-all duration-300">
-                        <option value="" disabled selected>Select your school</option>
-                        <option value="The Athenian School">The Athenian School</option>
-                        <option value="Dougherty Valley High">Dougherty Valley High School</option>
-                        <option value="Monte Vista High">Monte Vista High School</option>
-                        <option value="San Ramon Valley High">San Ramon Valley High School</option>
-                        <option value="California High">California High School</option>
-                        <option value="Quarry Lane School">The Quarry Lane School</option>
-                        <option value="Amador Valley High">Amador Valley High School</option>
-                        <option value="Foothill High">Foothill High School</option>
-                        <option value="Dublin High">Dublin High School</option>
-                        <option value="Granada High">Granada High School</option>
-                        <option value="Livermore High">Livermore High School</option>
-                        <option value="Berkeley High">Berkeley High School</option>
-                        <option value="Head-Royce School">Head-Royce School</option>
-                        <option value="College Preparatory School">The College Preparatory School</option>
-                        <option value="Bishop O'Dowd High">Bishop O'Dowd High School</option>
-                        <option value="Piedmont High">Piedmont High School</option>
-                        <option value="Miramonte High">Miramonte High School</option>
-                        <option value="Campolindo High">Campolindo High School</option>
-                        <option value="Acalanes High">Acalanes High School</option>
-                        <option value="Las Lomas High">Las Lomas High School</option>
-                    </select>
+                    <input type="text" id="school-search" name="school_search" autocomplete="off"
+                        placeholder="Search for your school or country"
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-30 px-3 py-2">
+                    <input type="hidden" id="school-selected" name="school" required>
+                    <div id="school-results" class="absolute left-0 right-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg z-10 hidden px-3 py-2"></div>
                 </div>
 
                 <!-- Terms -->
                 <div class="flex items-start animate-fade-in pt-2" style="animation-delay: 500ms;">
                     <div class="flex items-center h-5">
                         <input type="checkbox" 
-                               id="terms" 
-                               name="terms" 
-                               required
-                               class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary dark:focus:ring-primary-light transition-colors duration-300">
+                            id="terms" 
+                            name="terms" 
+                            required
+                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:focus:ring-primary-light">
                     </div>
                     <div class="ml-3">
                         <label for="terms" class="text-sm text-gray-600 dark:text-gray-400">
-                            I agree to the <a href="#" class="text-primary dark:text-primary-light hover:text-accent transition-colors duration-300">Terms of Service</a> and <a href="#" class="text-primary dark:text-primary-light hover:text-accent transition-colors duration-300">Privacy Policy</a>
+                            I agree to the 
+                            <a href="templates\_partials\privacy_policy.html" onclick="openTosModal(); return false;" class="text-primary dark:text-primary-light hover:underline">
+                                Terms of Service
+                            </a>
+                            and
+                            <a href="#" onclick="openPrivacyModal(); return false;" class="text-primary dark:text-primary-light hover:underline">
+                                Privacy Policy
+                            </a>
                         </label>
                     </div>
                 </div>
@@ -240,4 +230,129 @@
         }
     }
 </style>
+
+<!-- Terms of Service Modal -->
+<div id="tos-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" onclick="if(event.target === this) closeTosModal()">
+    <div class="bg-white dark:bg-gray-700 rounded-xl p-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+        <button onclick="closeTosModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white text-3xl">&times;</button>
+        <div class="text-gray-700 dark:text-gray-200 text-base space-y-4">
+            {% include "_partials/terms_of_service.html" %}
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Policy Modal -->
+<div id="privacy-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" onclick="if(event.target === this) closePrivacyModal()">
+    <div class="bg-white dark:bg-gray-700 rounded-xl p-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+        <button onclick="closePrivacyModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white text-3xl">&times;</button>
+        <div class="text-gray-700 dark:text-gray-200 text-base space-y-4">
+            {% include "_partials/privacy_policy.html" %}
+        </div>
+    </div>
+</div>
+
+<style>
+.relative { overflow: visible !important; }
+#school-results {
+    max-height: 20rem;
+    overflow-y: auto;
+    z-index: 50 !important;
+    box-shadow: 0 8px 35px 0 rgba(0,0,0,0.25);
+    border: none;
+    background: #23272f; /* subtle dark background for dropdown */
+    padding: 0.5rem 0;
+}
+.school-result-item {
+    background: #1e293b; /* Tailwind slate-800 or your primary color */
+    border-radius: 0.5rem;
+    margin: 0.25rem 0.5rem;
+    font-weight: normal;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    transition: 
+        background 0.2s,
+        transform 0.15s cubic-bezier(.4,2,.6,1),
+        box-shadow 0.2s;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+}
+.school-result-item:hover {
+    background: #475569; /* Tailwind slate-600, lighter grey */
+    color: #fff;
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+</style>
+
+<script>
+const input = document.getElementById('school-search');
+const results = document.getElementById('school-results');
+const hidden = document.getElementById('school-selected');
+
+input.addEventListener('input', function() {
+    const q = input.value.trim();
+    hidden.value = "";
+    if (q.length < 2) {
+        results.innerHTML = '';
+        results.classList.add('hidden');
+        return;
+    }
+    fetch(`/api/schools?q=${encodeURIComponent(q)}`)
+        .then(res => res.json())
+        .then(data => {
+            results.innerHTML = '';
+            if (data.length === 0) {
+                // Show a friendly message with a contact link if no schools found
+                const div = document.createElement('div');
+                div.className = "school-result-item text-white text-center";
+                div.innerHTML = `Couldn't find your school? <a href="mailto:asherburdeny@gmail.com" class="underline text-blue-300 hover:text-blue-400" target="_blank">Contact us to add it</a>`;
+                results.appendChild(div);
+                results.classList.remove('hidden');
+                return;
+            }
+            data.forEach(item => {
+                const div = document.createElement('div');
+                div.textContent = `${item.school} (${item.county})`;
+                div.className = "school-result-item font-bold text-white";
+                div.onclick = () => {
+                    input.value = item.school;
+                    hidden.value = item.school;
+                    results.innerHTML = '';
+                    results.classList.add('hidden');
+                };
+                results.appendChild(div);
+            });
+            results.classList.remove('hidden');
+        });
+});
+
+// Hide results when clicking outside
+document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !results.contains(e.target)) {
+        results.classList.add('hidden');
+    }
+});
+
+// Prevent form submit if no valid school selected
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!hidden.value || hidden.value !== input.value) {
+        e.preventDefault();
+        alert("Please select a school from the list.");
+    }
+});
+
+function openPrivacyModal() {
+    document.getElementById('privacy-modal').classList.remove('hidden');
+}
+function closePrivacyModal() {
+    document.getElementById('privacy-modal').classList.add('hidden');
+}
+function openTosModal() {
+    document.getElementById('tos-modal').classList.remove('hidden');
+}
+function closeTosModal() {
+    document.getElementById('tos-modal').classList.add('hidden');
+}
+</script>
+
 {% endblock %}

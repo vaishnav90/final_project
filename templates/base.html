@@ -244,19 +244,54 @@
 
     <!-- Footer -->
     <footer class="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-8">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="text-gray-500 dark:text-gray-400 text-sm">
-                    © 2024 Hathor. All rights reserved.
-                </div>
-                <div class="flex space-x-4 mt-4 md:mt-0">
-                    <a href="{{ url_for('how_it_works') }}" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm">How It Works</a>
-                    <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm">Terms</a>
-                    <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm">Privacy</a>
-                </div>
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="text-gray-500 dark:text-gray-400 text-sm">
+                © 2024 Hathor. All rights reserved. | Currently Only Suports California Residents
+            </div>
+            <div class="flex space-x-4 mt-4 md:mt-0">
+                <a href="{{ url_for('how_it_works') }}" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm">How It Works</a>
+                <a href="#" onclick="openTosModal(); return false;" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm">Terms</a>
+                <a href="#" onclick="openPrivacyModal(); return false;" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-sm">Privacy</a>
             </div>
         </div>
-    </footer>
+    </div>
+</footer>
+
+    <!-- Terms of Service Modal -->
+    <div id="tos-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" onclick="if(event.target === this) closeTosModal()">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-10 w-full max-w-5xl max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closeTosModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-3xl">&times;</button>
+            <div class="text-gray-700 dark:text-gray-200 text-base space-y-4">
+                {% include "_partials/terms_of_service.html" %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" onclick="if(event.target === this) closePrivacyModal()">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-10 w-full max-w-5xl max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closePrivacyModal()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-3xl">&times;</button>
+            <div class="text-gray-700 dark:text-gray-200 text-base space-y-4">
+                {% include "_partials/privacy_policy.html" %}
+            </div>
+        </div>
+    </div>
+
+<script>
+function openPrivacyModal() {
+    document.getElementById('privacy-modal').classList.remove('hidden');
+}
+function closePrivacyModal() {
+    document.getElementById('privacy-modal').classList.add('hidden');
+}
+function openTosModal() {
+    document.getElementById('tos-modal').classList.remove('hidden');
+}
+function closeTosModal() {
+    document.getElementById('tos-modal').classList.add('hidden');
+}
+</script>
 
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
