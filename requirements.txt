@@ -11,3 +11,6 @@ eventlet==0.35.2
 gunicorn==21.2.0
 Flask-CORS==4.0.0
 dnspython==2.4.2
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+websockets==12.0

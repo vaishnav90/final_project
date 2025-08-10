@@ -163,7 +163,7 @@ def load_school_data():
         print(f"Error loading school data: {e}")
 
 # Load school data when the app starts
-load_school_data()
+# load_school_data()
 
 #school search API
 @app.route('/api/schools')
